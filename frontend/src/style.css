@@ -1,13 +1,12 @@
 :root {
-  --primary-color: #2c3e50;
-  --primary-hover: #1a252f;
-  --secondary-color: #f5f5f5;
-  --secondary-border: #ddd;
-  --success-color: #4caf50;
-  --error-color: #f44336;
-  --text-color: #333;
-  --text-light: #666;
-  --border-radius: 6px;
+  --primary-color: #409eff;
+  --success-color: #67c23a;
+  --warning-color: #e6a23c;
+  --error-color: #f56c6c;
+  --text-color: #303133;
+  --text-light: #909399;
+  --border-color: #dcdfe4;
+  --bg-color: #f5f7fa;
   --transition: all 0.3s ease;
 
   font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
@@ -34,457 +33,395 @@ body,
 }
 
 body {
-  background-color: #fff;
+  background-color: #ffffff;
   color: var(--text-color);
   line-height: 1.5;
 }
 
-a {
+/* App 容器 */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: #f5f7fa;
+}
+
+/* 顶部头部 */
+.page-header {
+  padding: 1.5rem 2rem;
+  background-color: #ffffff;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.header-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  object-fit: cover;
+}
+
+.header-title {
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: #303133;
+  margin: 0;
+  letter-spacing: 0.5px;
+}
+
+/* 主内容区 */
+.app-main {
+  flex: 1;
+  padding: 2rem;
+  background-color: #f5f7fa;
+}
+
+.content-wrapper {
+  display: grid;
+  grid-template-columns: 2.5fr minmax(80px, 0.6fr) 2.5fr;
+  gap: 1.5rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  align-items: stretch;
+  height: 100%;
+}
+
+/* 输入框部分 */
+.input-section {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  gap: 0.75rem;
+}
+
+.input-section :deep(.el-textarea__wrapper) {
+  background-color: #ffffff;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  transition: var(--transition);
+  flex: 1;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+}
+
+.input-section :deep(.el-textarea__wrapper:hover) {
+  border-color: var(--primary-color);
+  box-shadow: 0 1px 4px rgba(64, 158, 255, 0.1);
+}
+
+.input-section :deep(.el-textarea__wrapper.is-focus) {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.2);
+}
+
+.input-section :deep(.el-textarea__inner) {
+  background-color: #ffffff;
+  color: var(--text-color);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  padding: 1rem;
+}
+
+.input-section :deep(.el-textarea__inner::placeholder) {
+  color: var(--text-light);
+}
+
+.input-section :deep(.el-input__count) {
+  color: var(--text-light);
+  font-size: 0.85rem;
+}
+
+.hint {
+  font-size: 0.85rem;
+  color: var(--text-light);
+  margin: 0;
+  padding: 0 0.5rem;
+}
+
+.hint kbd {
+  background-color: #f5f7fa;
+  border: 1px solid var(--border-color);
+  border-radius: 3px;
+  padding: 0.2rem 0.4rem;
+  font-family: 'Monaco', 'Courier New', monospace;
+  font-size: 0.8rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+/* 按钮部分 */
+.button-section {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0 0.5rem;
+}
+
+/* 覆盖 Element Plus 默认的按钮左边距 */
+.el-button+.el-button {
+    margin-left: 0px !important;
+}
+
+.button-section :deep(.el-button) {
+  width: 100%;
+  max-width: 120px;
+  font-weight: 500;
+  border-radius: 6px;
+  transition: var(--transition);
+}
+
+.button-section :deep(.el-button--success) {
+  background-color: #67c23a;
+  border-color: #67c23a;
+}
+
+.button-section :deep(.el-button--success:hover) {
+  background-color: #85ce61;
+  border-color: #85ce61;
+}
+
+.button-section :deep(.el-button--success:active) {
+  background-color: #5daf34;
+  border-color: #5daf34;
+}
+
+.button-section :deep(.el-button--warning) {
+  background-color: #e6a23c;
+  border-color: #e6a23c;
+}
+
+.button-section :deep(.el-button--warning:hover) {
+  background-color: #ebb563;
+  border-color: #ebb563;
+}
+
+.button-section :deep(.el-button--warning:active) {
+  background-color: #cf9236;
+  border-color: #cf9236;
+}
+
+.button-section :deep(.el-button--default:hover) {
+  color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+.button-section :deep(.el-button.is-disabled) {
+  opacity: 0.6;
+}
+
+.button-section :deep(.el-button--large) {
+  height: 44px;
+  font-size: 0.95rem;
+}
+
+/* 输出框部分 */
+.output-section {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+}
+
+.output-container {
+  flex: 1;
+  background-color: #ffffff;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.output-text {
+  width: 100%;
+  color: var(--text-color);
+  font-size: 0.95rem;
+  line-height: 1.8;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  word-break: break-word;
+}
+
+.output-container :deep(.el-empty__description) {
+  color: var(--text-light);
+}
+
+/* 页脚 */
+.app-footer {
+  text-align: left;
+}
+
+.footer-content {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.footer-content p {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #bbb9b9;
+}
+
+.footer-content a {
   color: var(--primary-color);
   text-decoration: none;
   transition: var(--transition);
 }
 
-a:hover {
+.footer-content a:hover {
+  color: #0084f4;
   text-decoration: underline;
-}
-
-button {
-  font-family: inherit;
-  cursor: pointer;
-}
-
-input,
-textarea {
-  font-family: inherit;
-}
-
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  line-height: 1.2;
-}
-
-/* 容器布局 */
-.container {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  background-color: #fff;
-}
-
-/* 主内容区 */
-.main {
-  flex: 1;
-  padding: 2rem;
-  max-width: 1400px;
-  margin: 0 auto;
-  width: 100%;
-}
-
-/* 标题 */
-.title {
-  font-size: 1.8rem;
-  font-weight: 600;
-  margin-bottom: 2rem;
-  color: var(--text-color);
-  text-align: left;
-}
-
-/* 三栏布局 */
-.layout {
-  display: grid;
-  /* 左右两列更宽，中间列更窄 */
-  grid-template-columns: 2fr minmax(5.5rem, 10vw) 2fr;
-  gap: 1.5rem;
-  min-height: 500px;
-}
-
-.panel {
-  display: flex;
-  flex-direction: column;
-  border: 1px solid var(--secondary-border);
-  border-radius: var(--border-radius);
-  background-color: #fafafa;
-  padding: 1.5rem;
-}
-
-/* 输入面板 */
-.input-panel {
-  min-height: 400px;
-}
-
-.textarea {
-  flex: 1;
-  width: 100%;
-  padding: 1rem;
-  border: 1px solid var(--secondary-border);
-  border-radius: var(--border-radius);
-  font-size: 0.95rem;
-  resize: none;
-  font-family: inherit;
-  line-height: 1.6;
-  transition: var(--transition);
-}
-
-.textarea:focus {
-  outline: none;
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(44, 62, 80, 0.1);
-}
-
-.hint {
-  margin-top: 0.75rem;
-  font-size: 0.85rem;
-  color: var(--text-light);
-}
-
-/* 按钮面板 */
-.button-panel {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.75rem;
-  padding: 0.5rem;
-}
-
-.btn {
-  padding: 0.75rem 1rem;
-  border: none;
-  border-radius: var(--border-radius);
-  font-size: 0.95rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: var(--transition);
-  white-space: nowrap;
-  width: 100%;
-  text-align: center;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.btn-primary {
-  /* 绿色提交按钮 */
-  background-color: #27ae60;
-  color: white;
-}
-
-.btn-primary:hover:not(:disabled) {
-  background-color: #229954;
-  box-shadow: 0 2px 10px rgba(39, 174, 96, 0.3);
-}
-
-.btn-primary:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.btn-primary.loading {
-  opacity: 0.8;
-}
-
-.btn-secondary {
-  background-color: var(--secondary-color);
-  color: var(--text-color);
-  border: 1px solid var(--secondary-border);
-}
-
-.btn-secondary:hover:not(:disabled) {
-  background-color: #efefef;
-  border-color: #bbb;
-}
-
-.btn-secondary:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-/* 复制按钮黄色 */
-.button-panel .btn-secondary:last-child {
-  background-color: #f39c12;
-  color: white;
-  border-color: #f39c12;
-}
-
-.button-panel .btn-secondary:last-child:hover:not(:disabled) {
-  background-color: #e67e22;
-  border-color: #e67e22;
-  box-shadow: 0 2px 10px rgba(243, 156, 18, 0.3);
-}
-
-/* 输出面板 */
-.output-panel {
-  min-height: 400px;
-}
-
-.output-box {
-  flex: 1;
-  padding: 1rem;
-  border: 1px solid var(--secondary-border);
-  border-radius: var(--border-radius);
-  background-color: #fff;
-  overflow-y: auto;
-}
-
-.output-text {
-  margin: 0;
-  color: var(--text-color);
-  white-space: pre-wrap;
-  word-wrap: break-word;
-  font-size: 0.95rem;
-  line-height: 1.8;
-}
-
-.output-placeholder {
-  margin: 0;
-  color: var(--text-light);
-  text-align: center;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-}
-
-/* 弹窗样式 - 右下角 toast 通知 */
-.modal-overlay {
-  position: fixed;
-  bottom: 1.5rem;
-  right: 1.5rem;
-  background-color: white;
-  border-radius: var(--border-radius);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  max-width: 350px;
-  width: calc(100% - 3rem);
-  animation: slideIn 0.3s ease;
-  z-index: 1000;
-  pointer-events: auto;
-}
-
-.modal-content {
-  display: contents;
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  padding: 1rem 1rem 0 1rem;
-}
-
-.modal-header h3 {
-  margin: 0;
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: var(--text-color);
-}
-
-.modal-close {
-  background: none;
-  border: none;
-  font-size: 1.2rem;
-  color: var(--text-light);
-  cursor: pointer;
-  width: 20px;
-  height: 20px;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.modal-close:hover {
-  color: var(--text-color);
-}
-
-.modal-body {
-  padding: 0.75rem 1rem;
-  font-size: 0.95rem;
-  line-height: 1.5;
-  color: var(--text-color);
-}
-
-/* 成功消息 - 绿色背景 */
-.success-modal .modal-overlay {
-  background-color: #27ae60;
-  border: none;
-  box-shadow: 0 4px 12px rgba(39, 174, 96, 0.3);
-}
-
-.success-modal .modal-body {
-  color: white;
-  padding: 1rem;
-  text-align: center;
-  font-weight: 500;
-}
-
-/* 错误消息 - 红色背景 */
-.error-modal .modal-overlay {
-  background-color: #f44336;
-  border: none;
-  box-shadow: 0 4px 12px rgba(244, 67, 54, 0.3);
-}
-
-.error-modal .modal-body {
-  color: white;
-  padding: 1rem;
-  text-align: center;
-  font-weight: 500;
-}
-
-.modal-footer {
-  padding: 0.75rem 1rem;
-  display: flex;
-  gap: 0.5rem;
-  justify-content: flex-end;
-}
-
-.modal-footer .btn {
-  width: auto;
-  min-width: 60px;
-  padding: 0.5rem 0.75rem;
-  font-size: 0.85rem;
-}
-
-/* 过渡动画 */
-.fade-enter-active {
-  transition: all 0.3s ease;
-}
-
-.fade-leave-active {
-  transition: all 0.3s ease;
-}
-
-.fade-enter-from {
-  transform: translateX(400px);
-  opacity: 0;
-}
-
-.fade-leave-to {
-  transform: translateX(400px);
-  opacity: 0;
-}
-
-@keyframes slideIn {
-  from {
-    transform: translateX(400px);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
-}
-
-@keyframes slideOut {
-  from {
-    transform: translateX(0);
-    opacity: 1;
-  }
-  to {
-    transform: translateX(400px);
-    opacity: 0;
-  }
 }
 
 /* 响应式设计 */
 @media (max-width: 1200px) {
-  .main {
+  .app-main {
     padding: 1.5rem;
   }
 
-  .layout {
-    grid-template-columns: 2fr minmax(5rem, 10vw) 2fr;
+  .content-wrapper {
+    grid-template-columns: 1.8fr minmax(120px, 1fr) 1.8fr;
     gap: 1rem;
+  }
+
+  .header-title {
+    font-size: 1.5rem;
   }
 }
 
 @media (max-width: 900px) {
-  .layout {
+  .app-main {
+    padding: 1rem;
+  }
+
+  .content-wrapper {
     grid-template-columns: 1fr;
-    min-height: auto;
     gap: 1rem;
+    height: auto;
   }
 
-  .button-panel {
+  .button-section {
     flex-direction: row;
-    min-height: auto;
+    justify-content: center;
+    align-items: center;
   }
 
-  .button-panel .btn {
+  .button-section :deep(.el-button) {
+    flex: 0 1 auto;
     width: auto;
-    flex: 1;
+    max-width: none;
+    min-width: 80px;
   }
 
-  .input-panel,
-  .output-panel {
-    min-height: 300px;
+  .header-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .header-title {
+    font-size: 1.3rem;
   }
 }
 
 @media (max-width: 768px) {
-  .main {
-    padding: 1rem;
+  .app-header {
+    padding: 0.75rem 1rem;
   }
 
-  .title {
-    font-size: 1.5rem;
-    margin-bottom: 1.5rem;
+  .app-main {
+    padding: 0.75rem;
   }
 
-  .input-panel,
-  .output-panel {
-    min-height: 250px;
+  .content-wrapper {
+    gap: 0.75rem;
   }
 
-  .textarea {
+  .header-content {
+    gap: 0.75rem;
+  }
+
+  .header-icon {
+    width: 36px;
+    height: 36px;
+  }
+
+  .header-title {
+    font-size: 1.1rem;
+  }
+
+  .input-section :deep(.el-textarea__inner) {
     padding: 0.75rem;
     font-size: 16px;
   }
 
-  .modal-overlay {
-    width: calc(100% - 2rem);
-    bottom: 1rem;
-    right: 1rem;
+  .output-container {
+    padding: 1rem;
+  }
+
+  .button-section :deep(.el-button--large) {
+    height: 40px;
+    font-size: 0.9rem;
   }
 }
 
 @media (max-width: 480px) {
-  .main {
-    padding: 0.75rem;
+  .app-header {
+    padding: 0.5rem;
   }
 
-  .title {
-    font-size: 1.25rem;
-    margin-bottom: 1rem;
+  .app-main {
+    padding: 0.5rem;
   }
 
-  .layout {
-    gap: 0.75rem;
+  .header-content {
+    gap: 0.5rem;
   }
 
-  .panel {
-    padding: 1rem;
+  .header-icon {
+    width: 32px;
+    height: 32px;
   }
 
-  .input-panel,
-  .output-panel {
+  .header-title {
+    font-size: 1rem;
+  }
+
+  .content-wrapper {
+    gap: 0.5rem;
+    min-height: auto;
+  }
+
+  .input-section :deep(.el-textarea__inner) {
+    padding: 0.5rem;
+    font-size: 16px;
     min-height: 200px;
   }
 
-  .btn {
-    padding: 0.6rem 0.75rem;
-    font-size: 0.9rem;
+  .button-section :deep(.el-button--large) {
+    height: 36px;
+    font-size: 0.85rem;
   }
 
-  .modal-header,
-  .modal-body,
-  .modal-footer {
-    padding: 1rem;
+  .hint {
+    font-size: 0.75rem;
+  }
+
+  .output-container {
+    padding: 0.75rem;
+  }
+
+  .output-text {
+    font-size: 0.9rem;
   }
 }

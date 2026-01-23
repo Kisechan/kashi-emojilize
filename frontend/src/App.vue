@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { ElMessage } from 'element-plus'
 import { enhanceText } from './services/api'
 import type { ApiError } from './types/index'
 
@@ -7,8 +8,10 @@ import type { ApiError } from './types/index'
 const inputText = ref('')
 const outputText = ref('')
 const isLoading = ref(false)
-const errorMessage = ref('')
-const successMessage = ref('')
+
+// 检测操作系统
+const isMac = /Mac|iPhone|iPod|iPad/i.test(navigator.platform)
+const isWindows = /Win/i.test(navigator.platform)
 
 // 计算属性
 const isInputEmpty = computed(() => inputText.value.trim().length === 0)
@@ -18,25 +21,15 @@ const isDisabled = computed(() => isLoading.value || isInputEmpty.value)
 async function handleEnhance() {
   if (isDisabled.value) return
 
-  // 清空错误和成功提示
-  errorMessage.value = ''
-  successMessage.value = ''
-  outputText.value = ''
-
   isLoading.value = true
 
   try {
     const enhanced = await enhanceText(inputText.value)
     outputText.value = enhanced
-    successMessage.value = '提交成功！'
-    
-    // 3 秒后清除成功提示
-    setTimeout(() => {
-      successMessage.value = ''
-    }, 3000)
+    ElMessage.success('提交成功！')
   } catch (error) {
     const apiError = error as ApiError
-    errorMessage.value = apiError.message || '增强失败，请稍后重试'
+    ElMessage.error(apiError.message || '增强失败，请稍后重试')
     console.error('API 错误:', apiError)
   } finally {
     isLoading.value = false
@@ -54,104 +47,108 @@ function handleKeydown(event: KeyboardEvent) {
 function clearInput() {
   inputText.value = ''
   outputText.value = ''
-  errorMessage.value = ''
-  successMessage.value = ''
 }
 
 // 复制输出文本到剪贴板
 async function copyToClipboard() {
   try {
     await navigator.clipboard.writeText(outputText.value)
-    successMessage.value = '已复制到剪贴板'
-    setTimeout(() => {
-      successMessage.value = ''
-    }, 2000)
+    ElMessage.success('已复制到剪贴板')
   } catch {
-    errorMessage.value = '复制失败，请重试'
+    ElMessage.error('复制失败，请重试')
   }
 }
 </script>
 
 <template>
-  <div class="container">
-    <main class="main">
-      <!-- 标题 -->
-      <h1 class="title">歌词 Emoji 化工具</h1>
+  <div class="app-container">
+    <!-- 顶部标题栏 -->
+    <div class="page-header">
+      <div class="header-content">
+        <img src="./assets/icon.jpg" alt="Emoji 增强工具" class="header-icon" />
+        <h1 class="header-title">歌词 Emoji 化小工具</h1>
+      </div>
+    </div>
 
-      <!-- 三栏布局 -->
-      <div class="layout">
+    <!-- 主内容区 -->
+    <el-main class="app-main">
+      <div class="content-wrapper">
         <!-- 左侧：输入框 -->
-        <section class="panel input-panel">
-          <textarea
+        <div class="input-section">
+          <el-input
             v-model="inputText"
-            class="textarea"
-            placeholder="输入文案..."
+            type="textarea"
+            :rows="12"
+            placeholder="输入歌词或文案..."
+            maxlength="5000"
+            show-word-limit
+            :autosize="{ minRows: 12, maxRows: 20 }"
             @keydown="handleKeydown"
-          ></textarea>
-          <p class="hint"><kbd>Ctrl</kbd>+<kbd>Enter</kbd> 快速提交</p>
-        </section>
+          />
+          <p class="hint">
+            <template v-if="isMac">
+              <kbd>⌘</kbd>+<kbd>Enter</kbd> 快速提交 | 最多 5000 字
+            </template>
+            <template v-else-if="isWindows">
+              <kbd>Ctrl</kbd>+<kbd>Enter</kbd> 快速提交 | 最多 5000 字
+            </template>
+            <template v-else>
+              最多 5000 字
+            </template>
+          </p>
+        </div>
 
-        <!-- 中间：按钮 -->
-        <section class="panel button-panel">
-          <button
-            class="btn btn-primary"
+        <!-- 中间：按钮组 -->
+        <div class="button-section">
+          <el-button
+            type="success"
+            size="large"
+            :loading="isLoading"
             :disabled="isDisabled"
-            :class="{ loading: isLoading }"
             @click="handleEnhance"
           >
-            <span v-if="!isLoading">提交</span>
-            <span v-else>处理中</span>
-          </button>
-          <button
-            class="btn btn-secondary"
+            {{ isLoading ? '处理中' : '提交' }}
+          </el-button>
+          <el-button
+            type="default"
+            size="large"
             :disabled="isLoading"
             @click="clearInput"
           >
             清空
-          </button>
-          <button
+          </el-button>
+          <el-button
             v-if="outputText"
-            class="btn btn-secondary"
+            type="warning"
+            size="large"
             @click="copyToClipboard"
           >
             复制
-          </button>
-        </section>
+          </el-button>
+        </div>
 
         <!-- 右侧：输出框 -->
-        <section class="panel output-panel">
-          <div class="output-box">
-            <p v-if="outputText" class="output-text">{{ outputText }}</p>
-            <p v-else class="output-placeholder">增强结果将显示于此</p>
-          </div>
-        </section>
-      </div>
-    </main>
-
-    <!-- 消息弹窗 -->
-    <transition name="fade">
-      <div v-if="errorMessage" class="error-modal">
-        <div class="modal-overlay" @click="errorMessage = ''">
-          <div class="modal-content" @click.stop>
-            <div class="modal-body">
-              {{ errorMessage }}
+        <div class="output-section">
+          <div class="output-container">
+            <el-empty
+              v-if="!outputText"
+              description="增强结果将显示于此"
+              :image-size="80"
+            />
+            <div v-else class="output-text">
+              {{ outputText }}
             </div>
           </div>
         </div>
       </div>
-    </transition>
+    </el-main>
 
-    <transition name="fade">
-      <div v-if="successMessage" class="success-modal">
-        <div class="modal-overlay" @click="successMessage = ''">
-          <div class="modal-content" @click.stop>
-            <div class="modal-body">
-              {{ successMessage }}
-            </div>
-          </div>
-        </div>
+    <!-- 页脚 -->
+    <el-footer class="app-footer">
+      <div class="footer-content">
+        <p>&copy; 2026 Kisechan | <a href="https://github.com/Kisechan/kashi-emojilize" target="_blank" rel="noopener noreferrer">GitHub</a></p>
       </div>
-    </transition>
+    </el-footer>
   </div>
 </template>
 
