@@ -1,0 +1,7 @@
+# 本地开发环境变量示例
+# 将此文件复制为 .dev.vars 并填入实际的 API Key
+# 注意：.dev.vars 包含敏感信息，已被 .gitignore 忽略，请勿提交到版本控制
+
+# DeepSeek API Key
+# https://platform.deepseek.com/api_keys
+DEEPSEEK_API_KEY=sk-xxxxx
