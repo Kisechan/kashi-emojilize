@@ -26,7 +26,7 @@ export async function callDeepSeekAPI(
     const request: DeepSeekRequest = {
       model: 'deepseek-chat',
       messages,
-      temperature: 0.7,
+      temperature: 1.5,
       max_tokens: 2000,
       top_p: 1,
     };

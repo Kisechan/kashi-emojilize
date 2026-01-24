@@ -62,19 +62,40 @@ body {
 }
 
 .header-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   object-fit: cover;
+  -webkit-user-drag: none;
 }
 
+/* 主副标题整体块 */
+.title-block {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 64px;
+}
+
+/* 主标题样式 */
 .header-title {
-  font-size: 1.8rem;
-  font-weight: 600;
-  color: #303133;
-  margin: 0;
-  letter-spacing: 0.5px;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #222;
+  margin-bottom: 0.2em;
+  line-height: 1.1;
+}
+
+/* 副标题样式 */
+.subtitle {
+  font-size: 1.1rem;
+  font-weight: 400;
+  color: #b8b9b9;
+  margin-left: 2px;
+  margin-bottom: 0;
+  letter-spacing: 0.04em;
+  line-height: 1.1;
 }
 
 /* 主内容区 */

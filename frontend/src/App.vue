@@ -65,8 +65,11 @@ async function copyToClipboard() {
     <!-- 顶部标题栏 -->
     <div class="page-header">
       <div class="header-content">
-        <img src="./assets/icon.jpg" alt="Emoji 增强工具" class="header-icon" />
-        <h1 class="header-title">歌词 Emoji 化小工具</h1>
+        <img src="./assets/icon.jpg" alt="Emoji 增强工具" class="header-icon" draggable="false" />
+        <div class="title-block">
+          <h1 class="header-title">歌词 Emoji 化小工具</h1>
+          <h2 class="subtitle">Vocaloid Kashi Emojilize</h2>
+        </div>
       </div>
     </div>
 
@@ -82,7 +85,7 @@ async function copyToClipboard() {
             placeholder="输入歌词或文案..."
             maxlength="5000"
             show-word-limit
-            :autosize="{ minRows: 12, maxRows: 20 }"
+            :autosize="{ minRows: 16, maxRows: 24 }"
             @keydown="handleKeydown"
           />
           <p class="hint">
@@ -132,7 +135,7 @@ async function copyToClipboard() {
           <div class="output-container">
             <el-empty
               v-if="!outputText"
-              description="增强结果将显示于此"
+              description="输出结果将显示于此"
               :image-size="80"
             />
             <div v-else class="output-text">
@@ -147,6 +150,7 @@ async function copyToClipboard() {
     <el-footer class="app-footer">
       <div class="footer-content">
         <p>&copy; 2026 Kisechan | <a href="https://github.com/Kisechan/kashi-emojilize" target="_blank" rel="noopener noreferrer">GitHub</a></p>
+        <p>Built by Vue3 + Vite + Element Plus</p>
       </div>
     </el-footer>
   </div>
