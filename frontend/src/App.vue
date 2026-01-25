@@ -28,7 +28,7 @@ const styles = [
 const inputText = ref('')
 const outputText = ref('')
 const isLoading = ref(false)
-const selectedStyle = ref('restrained')
+const selectedStyle = ref('enhanced')
 const styleDrawerVisible = ref(false)
 
 // 检测操作系统
@@ -38,6 +38,10 @@ const isWindows = /Win/i.test(navigator.platform)
 // 计算属性
 const isInputEmpty = computed(() => inputText.value.trim().length === 0)
 const isDisabled = computed(() => isLoading.value || isInputEmpty.value)
+const currentStyleName = computed(() => {
+  const style = styles.find(s => s.id === selectedStyle.value)
+  return style ? style.name : '未知风格'
+})
 
 // 处理 emoji 增强
 async function handleEnhance() {
@@ -206,6 +210,9 @@ onUnmounted(() => {
       <div class="content-wrapper">
         <!-- 左侧：输入框 -->
         <div class="input-section">
+          <p class="style-indicator">
+            当前生成风格：<span class="style-name-badge" @click="styleDrawerVisible = true">{{ currentStyleName }}</span>
+          </p>
           <el-input
             v-model="inputText"
             type="textarea"
@@ -314,7 +321,8 @@ onUnmounted(() => {
       </el-drawer>
     </div>
 
-    <!-- 风格选择按钮（可拖拽浮动） -->
+    <!-- 风格选择按钮（可拖拽浮动） [已禁用 - 改为点击风格名称打开] -->
+    <!-- 
     <div 
       class="style-toggle-button"
       :class="{ 'is-dragging': isDragging }"
@@ -327,6 +335,7 @@ onUnmounted(() => {
         <el-icon :size="28"><Setting /></el-icon>
       </div>
     </div>
+    -->
 
     <!-- 页脚 -->
     <el-footer class="app-footer">
