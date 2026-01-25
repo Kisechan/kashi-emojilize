@@ -332,7 +332,7 @@ onUnmounted(() => {
     <el-footer class="app-footer">
       <div class="footer-content">
         <p>&copy; 2026 Kisechan | <a href="https://github.com/Kisechan/kashi-emojilize" target="_blank" rel="noopener noreferrer">GitHub</a></p>
-        <p>Built by Vue3 + Vite + Element Plus</p>
+        <p>Built with Vue3 / Vite / Element Plus</p>
       </div>
     </el-footer>
   </div>
