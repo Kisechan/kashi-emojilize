@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed } from 'vue'
 import { ElMessage } from 'element-plus'
-import { Setting } from '@element-plus/icons-vue'
 import { enhanceText } from './services/api'
 import type { ApiError } from './types/index'
 
@@ -93,103 +92,7 @@ function selectStyle(styleId: string) {
   selectedStyle.value = styleId
 }
 
-// 拖拽相关状态
-const isDragging = ref(false)
-const buttonPosition = ref({ x: 0, y: 0 })
-const dragOffset = ref({ x: 0, y: 0 })
-const dragStartPosition = ref({ x: 0, y: 0 })
-const hasMoved = ref(false)
-
-// 初始化按钮位置（右下角）
-onMounted(() => {
-  buttonPosition.value = {
-    x: window.innerWidth - 100,
-    y: window.innerHeight - 100
-  }
-})
-
-// 开始拖拽
-function startDrag(e: MouseEvent | TouchEvent) {
-  isDragging.value = true
-  hasMoved.value = false
-  let clientX: number, clientY: number
-  if ('touches' in e && e.touches.length > 0) {
-    const touch = e.touches[0]
-    if (touch) {
-      clientX = touch.clientX
-      clientY = touch.clientY
-    } else {
-      return
-    }
-  } else if ('clientX' in e) {
-    clientX = e.clientX
-    clientY = e.clientY
-  } else {
-    return
-  }
-  dragOffset.value = {
-    x: clientX - buttonPosition.value.x,
-    y: clientY - buttonPosition.value.y
-  }
-  dragStartPosition.value = {
-    x: clientX,
-    y: clientY
-  }
-  document.addEventListener('mousemove', onDrag)
-  document.addEventListener('mouseup', stopDrag)
-  document.addEventListener('touchmove', onDrag)
-  document.addEventListener('touchend', stopDrag)
-}
-
-// 拖拽中
-function onDrag(e: MouseEvent | TouchEvent) {
-  if (!isDragging.value) return
-  e.preventDefault()
-  let clientX: number, clientY: number
-  if ('touches' in e && e.touches.length > 0) {
-    const touch = e.touches[0]
-    if (touch) {
-      clientX = touch.clientX
-      clientY = touch.clientY
-    } else {
-      return
-    }
-  } else if ('clientX' in e) {
-    clientX = e.clientX
-    clientY = e.clientY
-  } else {
-    return
-  }
-  
-  // 检测是否移动超过阈值（5像素）
-  const deltaX = Math.abs(clientX - dragStartPosition.value.x)
-  const deltaY = Math.abs(clientY - dragStartPosition.value.y)
-  if (deltaX > 5 || deltaY > 5) {
-    hasMoved.value = true
-  }
-  
-  buttonPosition.value = {
-    x: Math.max(0, Math.min(window.innerWidth - 72, clientX - dragOffset.value.x)),
-    y: Math.max(0, Math.min(window.innerHeight - 72, clientY - dragOffset.value.y))
-  }
-}
-
-// 停止拖拽
-function stopDrag() {
-  isDragging.value = false
-  document.removeEventListener('mousemove', onDrag)
-  document.removeEventListener('mouseup', stopDrag)
-  document.removeEventListener('touchmove', onDrag)
-  document.removeEventListener('touchend', stopDrag)
-}
-
-// 清理事件监听器
-onUnmounted(() => {
-  document.removeEventListener('mousemove', onDrag)
-  document.removeEventListener('mouseup', stopDrag)
-  document.removeEventListener('touchmove', onDrag)
-  document.removeEventListener('touchend', stopDrag)
-})
+// 拖拽相关代码已删除，将来可能可用于浮动按钮功能
 </script>
 
 <template>
