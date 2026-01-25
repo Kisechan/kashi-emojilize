@@ -47,8 +47,8 @@ async function handleEnhance() {
 
   try {
     const enhanced = await enhanceText(
-      inputText.value, 
-      // selectedStyle.value
+      inputText.value,
+      selectedStyle.value
     )
     outputText.value = enhanced
     ElMessage.success('提交成功！')

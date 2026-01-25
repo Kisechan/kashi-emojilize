@@ -4,6 +4,7 @@
 
 export interface EnhanceRequest {
   text: string;
+  style?: 'restrained' | 'enhanced' | 'symmetric';
 }
 
 export interface EnhanceResponse {

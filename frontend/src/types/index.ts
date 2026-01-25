@@ -7,6 +7,7 @@
  */
 export interface EnhanceRequest {
   text: string;
+  style?: 'restrained' | 'enhanced' | 'symmetric';
 }
 
 /**

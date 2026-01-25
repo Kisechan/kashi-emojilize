@@ -38,15 +38,16 @@ function handleApiError(response: Response, error?: unknown): ApiError {
  * 调用 emoji 增强 API
  *
  * @param text 需要增强的文本
+ * @param style 风格选项：'restrained' | 'enhanced' | 'symmetric'
  * @returns 增强后的文本
  * @throws ApiError
  */
-export async function enhanceText(text: string): Promise<string> {
+export async function enhanceText(text: string, style?: string): Promise<string> {
   const baseUrl = getApiBaseUrl();
   const url = `${baseUrl}/enhance`;
 
   try {
-    const request: EnhanceRequest = { text };
+    const request: EnhanceRequest = { text, style: style as 'restrained' | 'enhanced' | 'symmetric' | undefined };
 
     const response = await fetch(url, {
       method: 'POST',

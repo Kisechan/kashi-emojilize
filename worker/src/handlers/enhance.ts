@@ -40,11 +40,12 @@ export async function handleEnhanceRequest(
       };
     }
 
-    // 3. 构建 Prompt 消息
-    const messages = buildMessages(text);
+    // 3. 构建 Prompt 消息（传入风格参数）
+    const style = request.style || 'restrained'; // 默认使用收敛版
+    const messages = buildMessages(text, style);
 
-    // 4. 调用 DeepSeek API
-    const enhancedText = await callDeepSeekAPI(messages, env.DEEPSEEK_API_KEY);
+    // 4. 调用 DeepSeek API（传入风格参数以调整模型参数）
+    const enhancedText = await callDeepSeekAPI(messages, env.DEEPSEEK_API_KEY, style);
 
     // 5. 返回结果
     return {

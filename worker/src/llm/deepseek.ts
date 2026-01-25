@@ -14,21 +14,60 @@ import {
 
 const DEEPSEEK_API_BASE = 'https://api.deepseek.com/chat/completions';
 
+export type StyleType = 'restrained' | 'enhanced' | 'symmetric';
+
+/**
+ * 根据风格获取模型参数配置
+ */
+function getModelParams(style: StyleType) {
+  switch (style) {
+    case 'restrained':
+      // 收敛版：适度增加温馨的 emoji
+      return {
+        temperature: 1.2,
+        top_p: 0.85,
+        max_tokens: 2000,
+      };
+    case 'enhanced':
+      // 加强版：减少重复 emoji，适度控制数量
+      return {
+        temperature: 1.7,
+        top_p: 0.9,
+        max_tokens: 2000,
+      };
+    case 'symmetric':
+      // 对称版：保持不变
+      return {
+        temperature: 1.3,
+        top_p: 0.9,
+        max_tokens: 2500,
+      };
+    default:
+      return {
+        temperature: 1.0,
+        top_p: 0.9,
+        max_tokens: 2000,
+      };
+  }
+}
+
 /**
  * 调用 DeepSeek API 进行文本增强
  */
 export async function callDeepSeekAPI(
   messages: DeepSeekMessage[],
-  apiKey: string
+  apiKey: string,
+  style: StyleType = 'restrained'
 ): Promise<string> {
   try {
+    // 根据风格获取模型参数
+    const params = getModelParams(style);
+
     // 构建请求
     const request: DeepSeekRequest = {
       model: 'deepseek-chat',
       messages,
-      temperature: 1.5,
-      max_tokens: 2000,
-      top_p: 1,
+      ...params,
     };
 
     // 发送请求
