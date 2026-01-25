@@ -1,13 +1,35 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { ElMessage } from 'element-plus'
+import { Setting } from '@element-plus/icons-vue'
 import { enhanceText } from './services/api'
 import type { ApiError } from './types/index'
+
+// 风格定义
+const styles = [
+  {
+    id: 'restrained',
+    name: '收敛版',
+    example: '☺️我🍰喜欢蛋糕，也喜欢你🥰\n🥄用银匙去敲敲茶托的话就会与古代鱼🐟🌊一起到海底的遗迹旅行！🏛\n你讨厌我了吗？当我那样问道😖❓\n你轻抚我的头🫳😗\n某个家族的御茶会议😌🍵'
+  },
+  {
+    id: 'enhanced',
+    name: '加强版',
+    example: '那是什么眼神👁️果然是那种眼神😨\n已经不是第一次见到了呢💧\n那是什么眼神快👁️别这样了😱😭\n明明只是可爱❤️却像变成了罪人😔\n脱轨❌脱轨❌崩毁💥\n因一个秘密就崩毁💔\n要坏掉了😭对不起😔💔'
+  },
+  {
+    id: 'symmetric',
+    name: '对称版',
+    example: '👻任谁的灵魂都充满👻\n💔紫给紫给紫给💔\n🥵痛苦和会愤怒的人😡\n😋都被吃干抹净了😋\n🤔可为何此时此刻仍会🥹\n😭如此不断刺痛着😭'
+  }
+]
 
 // 状态管理
 const inputText = ref('')
 const outputText = ref('')
 const isLoading = ref(false)
+const selectedStyle = ref('restrained')
+const styleDrawerVisible = ref(false)
 
 // 检测操作系统
 const isMac = /Mac|iPhone|iPod|iPad/i.test(navigator.platform)
@@ -24,7 +46,10 @@ async function handleEnhance() {
   isLoading.value = true
 
   try {
-    const enhanced = await enhanceText(inputText.value)
+    const enhanced = await enhanceText(
+      inputText.value, 
+      // selectedStyle.value
+    )
     outputText.value = enhanced
     ElMessage.success('提交成功！')
   } catch (error) {
@@ -58,6 +83,109 @@ async function copyToClipboard() {
     ElMessage.error('复制失败，请重试')
   }
 }
+
+// 选择风格
+function selectStyle(styleId: string) {
+  selectedStyle.value = styleId
+}
+
+// 拖拽相关状态
+const isDragging = ref(false)
+const buttonPosition = ref({ x: 0, y: 0 })
+const dragOffset = ref({ x: 0, y: 0 })
+const dragStartPosition = ref({ x: 0, y: 0 })
+const hasMoved = ref(false)
+
+// 初始化按钮位置（右下角）
+onMounted(() => {
+  buttonPosition.value = {
+    x: window.innerWidth - 100,
+    y: window.innerHeight - 100
+  }
+})
+
+// 开始拖拽
+function startDrag(e: MouseEvent | TouchEvent) {
+  isDragging.value = true
+  hasMoved.value = false
+  let clientX: number, clientY: number
+  if ('touches' in e && e.touches.length > 0) {
+    const touch = e.touches[0]
+    if (touch) {
+      clientX = touch.clientX
+      clientY = touch.clientY
+    } else {
+      return
+    }
+  } else if ('clientX' in e) {
+    clientX = e.clientX
+    clientY = e.clientY
+  } else {
+    return
+  }
+  dragOffset.value = {
+    x: clientX - buttonPosition.value.x,
+    y: clientY - buttonPosition.value.y
+  }
+  dragStartPosition.value = {
+    x: clientX,
+    y: clientY
+  }
+  document.addEventListener('mousemove', onDrag)
+  document.addEventListener('mouseup', stopDrag)
+  document.addEventListener('touchmove', onDrag)
+  document.addEventListener('touchend', stopDrag)
+}
+
+// 拖拽中
+function onDrag(e: MouseEvent | TouchEvent) {
+  if (!isDragging.value) return
+  e.preventDefault()
+  let clientX: number, clientY: number
+  if ('touches' in e && e.touches.length > 0) {
+    const touch = e.touches[0]
+    if (touch) {
+      clientX = touch.clientX
+      clientY = touch.clientY
+    } else {
+      return
+    }
+  } else if ('clientX' in e) {
+    clientX = e.clientX
+    clientY = e.clientY
+  } else {
+    return
+  }
+  
+  // 检测是否移动超过阈值（5像素）
+  const deltaX = Math.abs(clientX - dragStartPosition.value.x)
+  const deltaY = Math.abs(clientY - dragStartPosition.value.y)
+  if (deltaX > 5 || deltaY > 5) {
+    hasMoved.value = true
+  }
+  
+  buttonPosition.value = {
+    x: Math.max(0, Math.min(window.innerWidth - 72, clientX - dragOffset.value.x)),
+    y: Math.max(0, Math.min(window.innerHeight - 72, clientY - dragOffset.value.y))
+  }
+}
+
+// 停止拖拽
+function stopDrag() {
+  isDragging.value = false
+  document.removeEventListener('mousemove', onDrag)
+  document.removeEventListener('mouseup', stopDrag)
+  document.removeEventListener('touchmove', onDrag)
+  document.removeEventListener('touchend', stopDrag)
+}
+
+// 清理事件监听器
+onUnmounted(() => {
+  document.removeEventListener('mousemove', onDrag)
+  document.removeEventListener('mouseup', stopDrag)
+  document.removeEventListener('touchmove', onDrag)
+  document.removeEventListener('touchend', stopDrag)
+})
 </script>
 
 <template>
@@ -145,6 +273,60 @@ async function copyToClipboard() {
         </div>
       </div>
     </el-main>
+
+    <!-- 风格选择悬浮窗 -->
+    <div class="style-drawer-wrapper">
+      <el-drawer
+        v-model="styleDrawerVisible"
+        direction="rtl"
+        size="360px"
+        :close-on-click-modal="true"
+        :close-on-press-escape="true"
+        :show-close="true"
+      >
+        <template #header>
+          <h2 class="drawer-title">选择生成风格</h2>
+        </template>
+        <div class="style-list">
+          <!-- 风格选项 -->
+          <el-radio-group v-model="selectedStyle" class="style-radio-group">
+            <div 
+              v-for="(style, index) in styles" 
+              :key="style.id" 
+              class="style-card"
+              :class="{ 'is-selected': selectedStyle === style.id }"
+              :style="{ animationDelay: `${index * 0.1}s` }"
+              @click="selectStyle(style.id)"
+            >
+              <div class="style-card-header">
+                <el-radio :value="style.id" size="large">
+                  <span class="style-name">{{ style.name }}</span>
+                </el-radio>
+              </div>
+              
+              <!-- 示例文本 -->
+              <div class="example-box">
+                <div class="example-text">{{ style.example }}</div>
+              </div>
+            </div>
+          </el-radio-group>
+        </div>
+      </el-drawer>
+    </div>
+
+    <!-- 风格选择按钮（可拖拽浮动） -->
+    <div 
+      class="style-toggle-button"
+      :class="{ 'is-dragging': isDragging }"
+      :style="{ left: buttonPosition.x + 'px', top: buttonPosition.y + 'px' }"
+      @mousedown="startDrag"
+      @touchstart="startDrag"
+      @click.stop="!hasMoved && (styleDrawerVisible = true)"
+    >
+      <div class="toggle-button-inner">
+        <el-icon :size="28"><Setting /></el-icon>
+      </div>
+    </div>
 
     <!-- 页脚 -->
     <el-footer class="app-footer">
