@@ -1,9 +1,8 @@
 // 用于测试不同风格的文本增强效果
 // 安装依赖，运行 `npm install`。
 // 用以下命令运行脚本： 
-//    `npx ts-node style-test.ts --api=<local|remote> --style=<restrained|enhanced|symmetric>`
+//    `npx ts-node style-test.ts --api=<local|remote> --style=<restrained|enhanced>`
 
-// 使用方法： npx ts-node style-test.ts
 import fetch from 'node-fetch';
 import dotenv from 'dotenv';
 import yargs from 'yargs';
@@ -11,7 +10,7 @@ import { hideBin } from 'yargs/helpers';
 
 dotenv.config({ path: './.env.local' });
 
-const STYLES = ['restrained', 'enhanced', 'symmetric'];
+const STYLES = ['restrained', 'enhanced'];
 
 const argv = yargs(hideBin(process.argv))
   .option('api', {
@@ -24,7 +23,7 @@ const argv = yargs(hideBin(process.argv))
   .option('style', {
     alias: 's',
     type: 'string',
-    description: '选择要测试的风格 (restrained, enhanced, symmetric)',
+    description: '选择要测试的风格 (restrained, enhanced)',
     choices: STYLES,
   })
   .help()
