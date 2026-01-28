@@ -16,11 +16,11 @@ const styles = [
     name: '加强版',
     example: '那是什么眼神👁️果然是那种眼神😨\n已经不是第一次见到了呢💧\n那是什么眼神快👁️别这样了😱😭\n明明只是可爱❤️却像变成了罪人😔\n脱轨❌脱轨❌崩毁💥\n因一个秘密就崩毁💔\n要坏掉了😭对不起😔💔'
   },
-  {
-    id: 'symmetric',
-    name: '对称版',
-    example: '👻任谁的灵魂都充满👻\n💔紫给紫给紫给💔\n🥵痛苦和会愤怒的人😡\n😋都被吃干抹净了😋\n🤔可为何此时此刻仍会🥹\n😭如此不断刺痛着😭'
-  }
+  // {
+  //   id: 'symmetric',
+  //   name: '对称版',
+  //   example: '👻任谁的灵魂都充满👻\n💔紫给紫给紫给💔\n🥵痛苦和会愤怒的人😡\n😋都被吃干抹净了😋\n🤔可为何此时此刻仍会🥹\n😭如此不断刺痛着😭'
+  // }
 ]
 
 // 状态管理
@@ -30,9 +30,23 @@ const isLoading = ref(false)
 const selectedStyle = ref('enhanced')
 const styleDrawerVisible = ref(false)
 
+// 检测屏幕宽度
+const isMobile = ref(false)
+
 // 检测操作系统
 const isMac = /Mac|iPhone|iPod|iPad/i.test(navigator.platform)
 const isWindows = /Win/i.test(navigator.platform)
+
+// 检测屏幕宽度变化
+function updateScreenSize() {
+  isMobile.value = window.innerWidth <= 480
+}
+
+// 初始化和监听窗口大小变化
+if (typeof window !== 'undefined') {
+  updateScreenSize()
+  window.addEventListener('resize', updateScreenSize)
+}
 
 // 计算属性
 const isInputEmpty = computed(() => inputText.value.trim().length === 0)
@@ -188,11 +202,12 @@ function selectStyle(styleId: string) {
     <div class="style-drawer-wrapper">
       <el-drawer
         v-model="styleDrawerVisible"
-        direction="rtl"
-        size="360px"
+        :direction="isMobile ? 'btt' : 'rtl'"
+        :size="isMobile ? '680px' : '360px'"
         :close-on-click-modal="true"
         :close-on-press-escape="true"
         :show-close="true"
+        :class="{ 'drawer-mobile': isMobile }"
       >
         <template #header>
           <h2 class="drawer-title">选择生成风格</h2>
