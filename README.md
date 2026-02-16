@@ -41,14 +41,22 @@ git clone https://github.com/kisechan/kashi-emojilize.git
 cd kashi-emojilize
 ```
 
-#### 配置 API 密钥
+#### 配置环境变量
 
-**Worker 后端**：
+**后端**：
 ```bash
 cd worker
 cp .dev.vars.example .dev.vars
 # 编辑 .dev.vars，填入你的 DeepSeek API Key
 echo "DEEPSEEK_API_KEY=sk-your-api-key" >> .dev.vars
+```
+
+**前端**：
+
+```bash
+cd worker
+cp .env.example .env.local
+# 编辑 .env.local，填入你的后端 API
 ```
 
 #### 启动开发服务器
@@ -105,6 +113,8 @@ cd frontend
 npm run build
 # 上传 dist 文件夹到你的托管服务
 ```
+
+如果使用 Cloudflare 部署页面，则需要将 `.env.local` 中的环境变量同时填入托管服务。
 
 ## API
 
