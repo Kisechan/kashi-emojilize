@@ -7,9 +7,26 @@
 
 为 Vocaloid 歌词自动添加发癫 emoji 的小工具。
 
-在线体验：*[https://kashi.kisechan.space](https://kashi.kisechan.space)*
+在线体验：[https://kashi.kisechan.space](https://kashi.kisechan.space)
 
-## 输出示例
+## 项目简介
+
+**Kashi Emojilize** 是一款为 **Vocaloid 歌词等各类文案**自动插入 emoji 的工具。通过接入大语言模型 API 智能地将文本转换为充满 emoji 的版本，可以极大地增强内容的趣味性和视觉冲击力。
+
+目前支持支持三种不同的风格：
+- **收敛版**：温和可爱
+- **加强版**（默认）：强烈抽象，密集使用 emoji，突出中二的风格
+- **对称版**：视觉对称，每行开头结尾都有 emoji
+
+如果对本项目的功能有更好的 idea，欢迎[贡献](#贡献)！
+
+### 大致原理
+
+1. **前端**：使用 Vue3 构建的 Web UI，用户输入歌词/文案并选择增强风格
+2. **API 网关**：使用 Cloudflare Worker 接收前端请求，进行数据验证和转发
+3. **LLM 处理**：使用 DeepSeek API，根据提示词对文本进行 emoji 增强处理
+
+### 输出文本样例
 
 > *花と水飴、最終電車* - n-buna/初音ミク
 > 
@@ -128,7 +145,7 @@ npm run build
 
 欢迎提交 Issue 和 Pull Request 来增强本项目！改进提示词、修复 Bug、添加新功能等都欢迎！
 
-详细的贡献指南请查看 [CONTRIBUTING.md](CONTRIBUTING.md)
+详细的贡献指南请查看 [`CONTRIBUTING.md`](CONTRIBUTING.md)
 
 - [提交 Issue](https://github.com/kisechan/kashi-emojilize/issues) - 报告 Bug 或提出建议
 - [提交 PR](https://github.com/kisechan/kashi-emojilize/pulls) - 提交改动
