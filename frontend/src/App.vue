@@ -1,112 +1,127 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { ElMessage } from 'element-plus'
-import { enhanceText } from './services/api'
-import type { ApiError } from './types/index'
+import { ref, computed, onMounted } from "vue";
+import { ElMessage } from "element-plus";
+import { enhanceText } from "./services/api";
+import type { ApiError } from "./types/index";
 
 // 风格定义
 const styles = [
   {
-    id: 'restrained',
-    name: '收敛版',
-    example: '☺️我🍰喜欢蛋糕，也喜欢你🥰\n🥄用银匙去敲敲茶托的话就会与古代鱼🐟🌊一起到海底的遗迹旅行！🏛\n你讨厌我了吗？当我那样问道😖❓\n你轻抚我的头🫳😗\n某个家族的御茶会议😌🍵'
+    id: "restrained",
+    name: "收敛版",
+    example:
+      "☺️我🍰喜欢蛋糕，也喜欢你🥰\n🥄用银匙去敲敲茶托的话就会与古代鱼🐟🌊一起到海底的遗迹旅行！🏛\n你讨厌我了吗？当我那样问道😖❓\n你轻抚我的头🫳😗\n某个家族的御茶会议😌🍵",
   },
   {
-    id: 'enhanced',
-    name: '加强版',
-    example: '那是什么眼神👁️果然是那种眼神😨\n已经不是第一次见到了呢💧\n那是什么眼神快👁️别这样了😱😭\n明明只是可爱❤️却像变成了罪人😔\n脱轨❌脱轨❌崩毁💥\n因一个秘密就崩毁💔\n要坏掉了😭对不起😔💔'
+    id: "enhanced",
+    name: "加强版",
+    example:
+      "那是什么眼神👁️果然是那种眼神😨\n已经不是第一次见到了呢💧\n那是什么眼神快👁️别这样了😱😭\n明明只是可爱❤️却像变成了罪人😔\n脱轨❌脱轨❌崩毁💥\n因一个秘密就崩毁💔\n要坏掉了😭对不起😔💔",
   },
   {
-    id: 'symmetric',
-    name: '对称版',
-    example: '👻任谁的灵魂都充满👻\n💔紫给紫给紫给💔\n🥵痛苦和会愤怒的人😡\n😋都被吃干抹净了😋\n🤔可为何此时此刻仍会🥹\n😭如此不断刺痛着😭'
-  }
-]
+    id: "symmetric",
+    name: "对称版",
+    example:
+      "👻任谁的灵魂都充满👻\n💔紫给紫给紫给💔\n🥵痛苦和会愤怒的人😡\n😋都被吃干抹净了😋\n🤔可为何此时此刻仍会🥹\n😭如此不断刺痛着😭",
+  },
+];
 
 // 状态管理
-const inputText = ref('')
-const outputText = ref('')
-const isLoading = ref(false)
-const selectedStyle = ref('enhanced')
-const styleDrawerVisible = ref(false)
+const inputText = ref("");
+const outputText = ref("");
+const isLoading = ref(false);
+const selectedStyle = ref("enhanced");
+const styleDrawerVisible = ref(false);
+const showWelcomeDialog = ref(false);
 
 // 检测屏幕宽度
-const isMobile = ref(false)
+const isMobile = ref(false);
 
 // 检测操作系统
-const isMac = /Mac|iPhone|iPod|iPad/i.test(navigator.platform)
-const isWindows = /Win/i.test(navigator.platform)
+const isMac = /Mac|iPhone|iPod|iPad/i.test(navigator.platform);
+const isWindows = /Win/i.test(navigator.platform);
 
 // 检测屏幕宽度变化
 function updateScreenSize() {
-  isMobile.value = window.innerWidth <= 480
+  isMobile.value = window.innerWidth <= 480;
 }
 
 // 初始化和监听窗口大小变化
-if (typeof window !== 'undefined') {
-  updateScreenSize()
-  window.addEventListener('resize', updateScreenSize)
+if (typeof window !== "undefined") {
+  updateScreenSize();
+  window.addEventListener("resize", updateScreenSize);
 }
 
+// 首次访问检查
+onMounted(() => {
+  const hasVisited = localStorage.getItem("kashi-emojilize-visited");
+  if (!hasVisited) {
+    showWelcomeDialog.value = true;
+    localStorage.setItem("kashi-emojilize-visited", "true");
+  }
+});
+
 // 计算属性
-const isInputEmpty = computed(() => inputText.value.trim().length === 0)
-const isDisabled = computed(() => isLoading.value || isInputEmpty.value)
+const isInputEmpty = computed(() => inputText.value.trim().length === 0);
+const isDisabled = computed(() => isLoading.value || isInputEmpty.value);
 const currentStyleName = computed(() => {
-  const style = styles.find(s => s.id === selectedStyle.value)
-  return style ? style.name : '未知风格'
-})
+  const style = styles.find((s) => s.id === selectedStyle.value);
+  return style ? style.name : "未知风格";
+});
 
 // 处理 emoji 增强
 async function handleEnhance() {
-  if (isDisabled.value) return
+  if (isDisabled.value) return;
 
-  isLoading.value = true
+  isLoading.value = true;
 
   try {
-    const enhanced = await enhanceText(
-      inputText.value,
-      selectedStyle.value
-    )
-    outputText.value = enhanced
-    ElMessage.success('提交成功！')
+    const enhanced = await enhanceText(inputText.value, selectedStyle.value);
+    outputText.value = enhanced;
+    ElMessage.success("提交成功！");
   } catch (error) {
-    const apiError = error as ApiError
-    ElMessage.error(apiError.message || '增强失败，请稍后重试')
-    console.error('API 错误:', apiError)
+    const apiError = error as ApiError;
+    ElMessage.error(apiError.message || "增强失败，请稍后重试");
+    console.error("API 错误:", apiError);
   } finally {
-    isLoading.value = false
+    isLoading.value = false;
   }
 }
 
 // 处理输入框回车（Ctrl/Cmd + Enter 提交）
 function handleKeydown(event: KeyboardEvent) {
-  if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
-    handleEnhance()
+  if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
+    handleEnhance();
   }
 }
 
 // 清空输入
 function clearInput() {
-  inputText.value = ''
-  outputText.value = ''
+  inputText.value = "";
+  outputText.value = "";
 }
 
 // 复制输出文本到剪贴板
 async function copyToClipboard() {
   try {
-    await navigator.clipboard.writeText(outputText.value)
-    ElMessage.success('已复制到剪贴板')
+    await navigator.clipboard.writeText(outputText.value);
+    ElMessage.success("已复制到剪贴板");
   } catch {
-    ElMessage.error('复制失败，请重试')
+    ElMessage.error("复制失败，请重试");
   }
 }
 
 // 选择风格
 function selectStyle(styleId: string) {
-  selectedStyle.value = styleId
+  selectedStyle.value = styleId;
 }
 
 // 拖拽相关代码已删除，将来可能可用于浮动按钮功能
+
+// 打开欢迎对话框
+function openWelcomeDialog() {
+  showWelcomeDialog.value = true;
+}
 </script>
 
 <template>
@@ -114,7 +129,12 @@ function selectStyle(styleId: string) {
     <!-- 顶部标题栏 -->
     <div class="page-header">
       <div class="header-content">
-        <img src="./assets/icon.jpg" alt="Emoji 增强工具" class="header-icon" draggable="false" />
+        <img
+          src="./assets/icon.jpg"
+          alt="Emoji 增强工具"
+          class="header-icon"
+          draggable="false"
+        />
         <div class="title-block">
           <h1 class="header-title">歌词 Emoji 化小工具</h1>
           <h2 class="subtitle">Vocaloid Kashi Emojilize</h2>
@@ -127,9 +147,22 @@ function selectStyle(styleId: string) {
       <div class="content-wrapper">
         <!-- 左侧：输入框 -->
         <div class="input-section">
-          <p class="style-indicator">
-            当前生成风格：<span class="style-name-badge" @click="styleDrawerVisible = true">{{ currentStyleName }}</span>
-          </p>
+          <div class="style-indicator-row">
+            <p class="style-indicator">
+              当前生成风格：<span
+                class="style-name-badge"
+                @click="styleDrawerVisible = true"
+                >{{ currentStyleName }}</span
+              >
+            </p>
+            <span
+              class="style-name-badge help-badge"
+              @click="openWelcomeDialog"
+              title="查看功能说明"
+            >
+              使用说明
+            </span>
+          </div>
           <el-input
             v-model="inputText"
             type="textarea"
@@ -147,9 +180,7 @@ function selectStyle(styleId: string) {
             <template v-else-if="isWindows">
               <kbd>Ctrl</kbd>+<kbd>Enter</kbd> 快速提交 | 最多 5000 字
             </template>
-            <template v-else>
-              最多 5000 字
-            </template>
+            <template v-else> 最多 5000 字 </template>
           </p>
         </div>
 
@@ -162,7 +193,7 @@ function selectStyle(styleId: string) {
             :disabled="isDisabled"
             @click="handleEnhance"
           >
-            {{ isLoading ? '处理中' : '提交' }}
+            {{ isLoading ? "处理中" : "提交" }}
           </el-button>
           <el-button
             type="default"
@@ -215,9 +246,9 @@ function selectStyle(styleId: string) {
         <div class="style-list">
           <!-- 风格选项 -->
           <el-radio-group v-model="selectedStyle" class="style-radio-group">
-            <div 
-              v-for="(style, index) in styles" 
-              :key="style.id" 
+            <div
+              v-for="(style, index) in styles"
+              :key="style.id"
               class="style-card"
               :class="{ 'is-selected': selectedStyle === style.id }"
               :style="{ animationDelay: `${index * 0.1}s` }"
@@ -228,7 +259,7 @@ function selectStyle(styleId: string) {
                   <span class="style-name">{{ style.name }}</span>
                 </el-radio>
               </div>
-              
+
               <!-- 示例文本 -->
               <div class="example-box">
                 <div class="example-text">{{ style.example }}</div>
@@ -258,10 +289,71 @@ function selectStyle(styleId: string) {
     <!-- 页脚 -->
     <el-footer class="app-footer">
       <div class="footer-content">
-        <p>&copy; 2026 Kisechan | <a href="https://github.com/Kisechan/kashi-emojilize" target="_blank" rel="noopener noreferrer">GitHub</a></p>
+        <p>
+          &copy; 2026 Kisechan |
+          <a
+            href="https://github.com/Kisechan/kashi-emojilize"
+            target="_blank"
+            rel="noopener noreferrer"
+            >GitHub</a
+          >
+        </p>
         <p>Built with Vue3 / Vite / Element Plus</p>
       </div>
     </el-footer>
+
+    <!-- 欢迎说明对话框 -->
+    <el-dialog
+      v-model="showWelcomeDialog"
+      width="65%"
+      :max-height="40"
+      align-center
+      class="welcome-dialog"
+    >
+      <div class="welcome-content">
+        <section class="welcome-section">
+          <h2>
+            👏 欢迎使用歌词 Emoji 化小工具！
+          </h2>
+        </section>
+        
+        <section class="welcome-section">
+          <h3 class="section-title">项目功能</h3>
+          <ul class="feature-list">
+            <li>为歌词等文本自动添加 Emoji</li>
+            <li>支持多种生成风格：收敛版、加强版、对称版</li>
+            <li>快速处理，实时预览增强效果</li>
+            <li>由 DeepSeek LLM 驱动</li>
+          </ul>
+        </section>
+
+        <section class="welcome-section">
+          <h3 class="section-title">使用指南</h3>
+          <ol class="guide-list">
+            <li>在左侧输入框粘贴或输入歌词文本</li>
+            <li>点击「选择生成风格」按钮选择喜欢的风格</li>
+            <li>点击「提交」</li>
+            <li>等待处理完成，在右侧查看增强后的文本</li>
+            <li>点击「复制」按钮复制到剪贴板</li>
+          </ol>
+        </section>
+
+        <section class="welcome-section">
+          <h3 class="section-title">关于项目</h3>
+          <p class="about-text">
+            本项目由 <a href="https://github.com/Kisechan"><strong>Kisechan</strong></a> 创建和维护。
+            如果你觉得这个工具对你有帮助，欢迎<a href="https://github.com/Kisechan/kashi-emojilize">在 GitHub 仓库给个 Star 支持一下</a>～
+          </p>
+        </section>
+      </div>
+
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button type="primary" @click="showWelcomeDialog = false">
+            我知道了！
+          </el-button>
+        </div>
+      </template>
+    </el-dialog>
   </div>
 </template>
-

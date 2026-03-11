@@ -59,6 +59,7 @@ body {
   gap: 1rem;
   max-width: 1400px;
   margin: 0 auto;
+  width: 100%;
 }
 
 .header-icon {
@@ -177,6 +178,15 @@ body {
 }
 
 /* 风格指示器 */
+.style-indicator-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+  flex-wrap: wrap;
+}
+
 .style-indicator {
   font-size: 0.95rem;
   color: var(--text-color);
@@ -206,6 +216,11 @@ body {
 .style-name-badge:hover {
   box-shadow: 0 4px 8px rgba(64, 158, 255, 0.3);
   transform: translateY(-1px);
+}
+
+.help-badge {
+  cursor: pointer;
+  user-select: none;
 }
 
 /* 按钮部分 */
@@ -747,5 +762,205 @@ body {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+/* 顶部说明按钮 */
+/* 样式已移至 .help-badge 和 .style-indicator-row */
+
+/* 欢迎对话框样式 */
+.welcome-dialog {
+  --el-dialog-border-radius: 12px;
+}
+
+.welcome-dialog :deep(.el-dialog) {
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+}
+
+.welcome-dialog :deep(.el-dialog__header) {
+  padding: 1.5rem;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.welcome-dialog :deep(.el-dialog__title) {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #303133;
+}
+
+.welcome-dialog :deep(.el-dialog__close) {
+  font-size: 1.3rem;
+  color: #909399;
+}
+
+.welcome-dialog :deep(.el-dialog__body) {
+  padding: 2rem;
+  max-height: 70vh;
+  overflow-y: auto;
+  color: #303133;
+}
+
+.welcome-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.welcome-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.section-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #303133;
+  margin: 0 0 0.75rem 0;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #e6a23c;
+  display: inline-block;
+}
+
+.feature-list,
+.guide-list,
+.tips-list {
+  margin: 0;
+  padding-left: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.feature-list li,
+.guide-list li,
+.tips-list li {
+  color: #606266;
+  line-height: 1.6;
+  font-size: 0.95rem;
+}
+
+.guide-list li {
+  color: #606266;
+}
+
+.guide-list kbd {
+  background-color: #f5f7fa;
+  border: 1px solid #dcdfe4;
+  border-radius: 3px;
+  padding: 0.25rem 0.5rem;
+  font-family: 'Monaco', 'Courier New', monospace;
+  font-size: 0.85rem;
+  font-weight: 500;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  color: #303133;
+  margin: 0 0.25rem;
+}
+
+.about-text {
+  margin: 0;
+  color: #606266;
+  line-height: 1.6;
+  font-size: 0.95rem;
+}
+
+.author-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.github-link {
+  font-weight: 600;
+  font-size: 1rem;
+  color: #409eff !important;
+  padding: 0 !important;
+  height: auto !important;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.github-link:hover {
+  color: #66b1ff !important;
+  text-decoration: underline;
+  transform: translateX(2px);
+}
+
+.tech-tag {
+  background-color: #e6f7ff;
+  border-color: #b3d8ff;
+  color: #0084f4;
+  font-size: 0.85rem;
+}
+
+.welcome-tips {
+  background-color: #fdf6ec;
+  padding: 1rem;
+  border-radius: 8px;
+  border-left: 4px solid #e6a23c;
+}
+
+.welcome-tips .section-title {
+  border-bottom: none;
+  padding-bottom: 0;
+  margin-bottom: 0.5rem;
+}
+
+.dialog-footer {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.dialog-footer :deep(.el-button) {
+  min-width: 120px;
+  transition: all 0.3s ease;
+}
+
+.dialog-footer :deep(.el-button--primary) {
+  background-color: #67c23a;
+  border-color: #67c23a;
+}
+
+.dialog-footer :deep(.el-button--primary:hover) {
+  background-color: #85ce61;
+  border-color: #85ce61;
+}
+
+/* 响应式：dialog 在小屏幕上全屏显示 */
+@media (max-width: 768px) {
+  .welcome-dialog :deep(.el-dialog) {
+    margin: 0 !important;
+    width: 100% !important;
+    max-height: 100vh;
+    border-radius: 0;
+  }
+
+  .welcome-dialog :deep(.el-dialog__body) {
+    padding: 1.5rem;
+    max-height: calc(100vh - 120px);
+  }
+
+  .section-title {
+    font-size: 1.1rem;
+  }
+
+  .feature-list li,
+  .guide-list li,
+  .tips-list li,
+  .about-text {
+    font-size: 0.9rem;
+  }
+
+  .author-actions {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .tech-tag {
+    font-size: 0.8rem;
   }
 }
