@@ -42,12 +42,16 @@ function handleApiError(response: Response, error?: unknown): ApiError {
  * @returns 增强后的文本
  * @throws ApiError
  */
-export async function enhanceText(text: string, style?: string): Promise<string> {
+export async function enhanceText(text: string, style?: string, turnstileToken?: string): Promise<string> {
   const baseUrl = getApiBaseUrl();
   const url = `${baseUrl}/enhance`;
 
   try {
-    const request: EnhanceRequest = { text, style: style as 'restrained' | 'enhanced' | 'symmetric' | undefined };
+    const request: EnhanceRequest = {
+      text,
+      style: style as 'restrained' | 'enhanced' | 'symmetric' | undefined,
+      turnstileToken: turnstileToken ?? '',
+    };
 
     const response = await fetch(url, {
       method: 'POST',

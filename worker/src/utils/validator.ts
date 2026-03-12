@@ -4,7 +4,7 @@
 
 import { AppError } from '../types/index';
 
-const MAX_TEXT_LENGTH = 5000;
+const MAX_TEXT_LENGTH = 500;
 const MIN_TEXT_LENGTH = 1;
 
 export interface ValidationResult {
@@ -39,6 +39,14 @@ export function validateEnhanceRequest(data: unknown): ValidationResult {
   }
 
   const obj = data as Record<string, unknown>;
+
+  // 检查是否有 turnstileToken 字段
+  if (!('turnstileToken' in obj) || typeof obj.turnstileToken !== 'string' || (obj.turnstileToken as string).trim().length === 0) {
+    return {
+      isValid: false,
+      error: new AppError('MISSING_TURNSTILE_TOKEN', '缺少人机验证 token', 400),
+    };
+  }
 
   // 检查是否有 text 字段
   if (!('text' in obj)) {

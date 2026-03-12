@@ -75,6 +75,14 @@ async function handleEnhanceRoute(
   env: Env
 ): Promise<Response> {
   try {
+    // Check rate limit per client IP
+    const clientIp = request.headers.get('CF-Connecting-IP') || 'unknown';
+    const rateLimitKey = `enhance:${clientIp}`;
+    const { success: rateLimitOk } = await env.RATE_LIMITER.limit({ key: rateLimitKey });
+    if (!rateLimitOk) {
+      return createErrorResponse('请求过于频繁，请稍后再试', 429);
+    }
+
     // 解析请求体
     let body: unknown;
     try {
@@ -84,7 +92,7 @@ async function handleEnhanceRoute(
     }
 
     // 调用业务处理器
-    const response = await handleEnhanceRequest(body, env);
+    const response = await handleEnhanceRequest(body, env, request);
 
     // 返回结果
     return createSuccessResponse(response);

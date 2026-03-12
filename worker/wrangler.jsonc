@@ -7,9 +7,18 @@
 	"name": "kashi-emojilize",
 	"main": "src/index.ts",
 	"compatibility_date": "2025-09-27",
+	"workers_dev": false,
+	"preview_urls": false,
 	"observability": {
 		"enabled": true
 	},
+	"routes": [
+		{
+			"pattern": "kashi-emojilize-api.kisechan.space",
+			"zone_name": "kisechan.space",
+			"custom_domain": true
+		}
+	],
 	/**
 	 * Smart Placement
 	 * https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement
@@ -45,4 +54,19 @@
 	 * https://developers.cloudflare.com/workers/wrangler/configuration/#service-bindings
 	 */
 	// "services": [  {   "binding": "MY_SERVICE",   "service": "my-service"  } ]
+	/**
+	 * Rate Limiting
+	 * Protects the /enhance endpoint from abuse (10 requests per 60 seconds per IP)
+	 * https://developers.cloudflare.com/workers/runtime-apis/bindings/rate-limit/
+	 */
+	"ratelimits": [
+		{
+			"name": "RATE_LIMITER",
+			"namespace_id": "1001",
+			"simple": {
+				"limit": 10,
+				"period": 60
+			}
+		}
+	]
 }

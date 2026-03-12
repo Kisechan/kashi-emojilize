@@ -8,16 +8,18 @@ import { EnhanceRequest, EnhanceResponse, AppError, Env } from '../types/index';
 import { validateEnhanceRequest } from '../utils/validator';
 import { buildMessages } from '../prompt/base';
 import { callDeepSeekAPI } from '../llm/deepseek';
+import { verifyTurnstileToken } from '../security/turnstile';
 
 /**
  * 处理文本 emoji 增强请求
  */
 export async function handleEnhanceRequest(
   data: unknown,
-  env: Env
+  env: Env,
+  httpRequest: Request
 ): Promise<EnhanceResponse> {
   try {
-    // 1. 校验请求数据
+    // 1. 校验请求数据结构（包含 turnstileToken 存在性检查）
     const validation = validateEnhanceRequest(data);
     if (!validation.isValid && validation.error) {
       return {
@@ -30,7 +32,26 @@ export async function handleEnhanceRequest(
     const request = data as EnhanceRequest;
     const text = request.text.trim();
 
-    // 2. 检查 API Key 是否配置
+    // 2. 验证 Turnstile 人机验证 token
+    if (!env.TURNSTILE_SECRET_KEY) {
+      console.error('缺少必需的环境变量：TURNSTILE_SECRET_KEY');
+      return { success: false, error: '服务器配置错误', code: 'MISSING_CONFIG' };
+    }
+    const clientIp = httpRequest.headers.get('CF-Connecting-IP') || undefined;
+    const turnstileResult = await verifyTurnstileToken(
+      request.turnstileToken,
+      env.TURNSTILE_SECRET_KEY,
+      clientIp
+    );
+    if (!turnstileResult.success) {
+      return {
+        success: false,
+        error: '人机验证失败，请刷新页面重试',
+        code: 'TURNSTILE_FAILED',
+      };
+    }
+
+    // 3. 检查 API Key 是否配置
     if (!env.DEEPSEEK_API_KEY) {
       console.error('缺少必需的环境变量：DEEPSEEK_API_KEY');
       return {
@@ -40,14 +61,14 @@ export async function handleEnhanceRequest(
       };
     }
 
-    // 3. 构建 Prompt 消息（传入风格参数）
+    // 4. 构建 Prompt 消息（传入风格参数）
     const style = request.style || 'restrained'; // 默认使用收敛版
     const messages = buildMessages(text, style);
 
-    // 4. 调用 DeepSeek API（传入风格参数以调整模型参数）
+    // 5. 调用 DeepSeek API（传入风格参数以调整模型参数）
     const enhancedText = await callDeepSeekAPI(messages, env.DEEPSEEK_API_KEY, style);
 
-    // 5. 返回结果
+    // 6. 返回结果
     return {
       success: true,
       data: enhancedText,

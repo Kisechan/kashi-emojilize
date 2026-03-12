@@ -59,11 +59,16 @@ onMounted(() => {
     showWelcomeDialog.value = true;
     localStorage.setItem("kashi-emojilize-visited", "true");
   }
+
+  // 初始化 Turnstile 小组件
+  initTurnstile();
 });
 
 // 计算属性
 const isInputEmpty = computed(() => inputText.value.trim().length === 0);
-const isDisabled = computed(() => isLoading.value || isInputEmpty.value);
+const isDisabled = computed(
+  () => isLoading.value || isInputEmpty.value || !turnstileToken.value
+);
 const currentStyleName = computed(() => {
   const style = styles.find((s) => s.id === selectedStyle.value);
   return style ? style.name : "未知风格";
@@ -76,7 +81,7 @@ async function handleEnhance() {
   isLoading.value = true;
 
   try {
-    const enhanced = await enhanceText(inputText.value, selectedStyle.value);
+    const enhanced = await enhanceText(inputText.value, selectedStyle.value, turnstileToken.value);
     outputText.value = enhanced;
     ElMessage.success("提交成功！");
   } catch (error) {
@@ -85,6 +90,7 @@ async function handleEnhance() {
     console.error("API 错误:", apiError);
   } finally {
     isLoading.value = false;
+    resetTurnstile();
   }
 }
 
@@ -117,7 +123,45 @@ function selectStyle(styleId: string) {
 }
 
 // 拖拽相关代码已删除，将来可能可用于浮动按钮功能
+// Turnstile 人机验证
+const turnstileRef = ref<HTMLElement | null>(null);
+const turnstileToken = ref("");
+const turnstileWidgetId = ref<string | null>(null);
 
+function initTurnstile() {
+  const siteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY;
+  if (!siteKey) {
+    console.warn("[Turnstile] VITE_TURNSTILE_SITE_KEY 未配置，跳过人机验证");
+    return;
+  }
+  const tryRender = () => {
+    if (window.turnstile && turnstileRef.value) {
+      turnstileWidgetId.value = window.turnstile.render(turnstileRef.value, {
+        sitekey: siteKey,
+        callback: (token: string) => {
+          turnstileToken.value = token;
+        },
+        "error-callback": () => {
+          turnstileToken.value = "";
+        },
+        "expired-callback": () => {
+          turnstileToken.value = "";
+        },
+        theme: "light",
+      });
+    } else {
+      setTimeout(tryRender, 100);
+    }
+  };
+  tryRender();
+}
+
+function resetTurnstile() {
+  if (window.turnstile && turnstileWidgetId.value !== null) {
+    window.turnstile.reset(turnstileWidgetId.value);
+    turnstileToken.value = "";
+  }
+}
 // 打开欢迎对话框
 function openWelcomeDialog() {
   showWelcomeDialog.value = true;
@@ -168,20 +212,22 @@ function openWelcomeDialog() {
             type="textarea"
             :rows="12"
             placeholder="输入歌词或文案..."
-            maxlength="5000"
+            maxlength="500"
             show-word-limit
             :autosize="{ minRows: 16, maxRows: 24 }"
             @keydown="handleKeydown"
           />
           <p class="hint">
             <template v-if="isMac">
-              <kbd>⌘</kbd>+<kbd>Enter</kbd> 快速提交 | 最多 5000 字
+              <kbd>⌘</kbd>+<kbd>Enter</kbd> 快速提交 | 最多 500 字
             </template>
             <template v-else-if="isWindows">
-              <kbd>Ctrl</kbd>+<kbd>Enter</kbd> 快速提交 | 最多 5000 字
+              <kbd>Ctrl</kbd>+<kbd>Enter</kbd> 快速提交 | 最多 500 字
             </template>
-            <template v-else> 最多 5000 字 </template>
+            <template v-else> 最多 500 字 </template>
           </p>
+          <!-- Turnstile 人机验证小组件 -->
+          <div ref="turnstileRef" class="turnstile-widget"></div>
         </div>
 
         <!-- 中间：按钮组 -->
@@ -330,7 +376,7 @@ function openWelcomeDialog() {
         <section class="welcome-section">
           <h3 class="section-title">使用指南</h3>
           <ol class="guide-list">
-            <li>在左侧输入框粘贴或输入歌词文本</li>
+            <li>在左侧输入框粘贴或输入歌词文本（最多 500 字）</li>
             <li>点击「选择生成风格」按钮选择喜欢的风格</li>
             <li>点击「提交」</li>
             <li>等待处理完成，在右侧查看增强后的文本</li>
