@@ -33,7 +33,7 @@ const isLoading = ref(false);
 const selectedStyle = ref("enhanced");
 const styleDrawerVisible = ref(false);
 const showWelcomeDialog = ref(false);
-const maintenanceModeEnabled = ref(true);
+const maintenanceModeEnabled = ref(false);
 
 // 检测屏幕宽度
 const isMobile = ref(false);
