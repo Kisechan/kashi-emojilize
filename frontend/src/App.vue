@@ -33,6 +33,7 @@ const isLoading = ref(false);
 const selectedStyle = ref("enhanced");
 const styleDrawerVisible = ref(false);
 const showWelcomeDialog = ref(false);
+const maintenanceModeEnabled = ref(true);
 
 // 检测屏幕宽度
 const isMobile = ref(false);
@@ -188,6 +189,17 @@ function openWelcomeDialog() {
 
     <!-- 主内容区 -->
     <el-main class="app-main">
+      <template v-if="maintenanceModeEnabled">
+        <section class="maintenance-panel" aria-live="polite">
+          <div class="maintenance-panel__content">
+            <p class="maintenance-panel__title">系统公告</p>
+            <p class="maintenance-panel__text">
+                服务当前正在维护中，请用户稍安勿躁～
+            </p>
+          </div>
+        </section>
+      </template>
+
       <div class="content-wrapper">
         <!-- 左侧：输入框 -->
         <div class="input-section">
