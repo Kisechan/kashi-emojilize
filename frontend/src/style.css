@@ -274,6 +274,15 @@ body {
   user-select: none;
 }
 
+.ignore-mode-badge {
+  background-color: #f08c2e;
+  box-shadow: 0 2px 4px rgba(240, 140, 46, 0.24);
+}
+
+.ignore-mode-badge:hover {
+  box-shadow: 0 4px 8px rgba(240, 140, 46, 0.32);
+}
+
 /* 按钮部分 */
 .button-section {
   display: flex;
@@ -573,13 +582,27 @@ body {
   --el-drawer-width-pc: 360px;
 }
 
+.ignore-drawer-wrapper {
+  --el-drawer-width-pc: 360px;
+}
+
 .style-drawer-wrapper :deep(.el-drawer__header) {
   margin-bottom: 0;
   padding: 1.5rem;
   border-bottom: 1px solid #f0f0f0;
 }
 
+.ignore-drawer-wrapper :deep(.el-drawer__header) {
+  margin-bottom: 0;
+  padding: 1.5rem;
+  border-bottom: 1px solid #f0f0f0;
+}
+
 .style-drawer-wrapper :deep(.el-drawer__body) {
+  padding: 1rem;
+}
+
+.ignore-drawer-wrapper :deep(.el-drawer__body) {
   padding: 1rem;
 }
 
@@ -676,6 +699,38 @@ body {
   align-items: center;
   margin-bottom: 1rem;
   width: 100%;
+}
+
+.ignore-mode-description {
+  margin: -0.25rem 0 0.9rem;
+  font-size: 0.88rem;
+  color: #7a8498;
+}
+
+.ignore-example-box {
+  border-color: #f8d8bd;
+  background-color: #fffaf4;
+}
+
+.ignore-example-text {
+  max-height: 220px;
+}
+
+.ignore-example-line {
+  margin: 0;
+}
+
+.ignore-example-line.is-ignored {
+  color: #d13f3f;
+  text-decoration: line-through;
+  text-decoration-thickness: 1.5px;
+  text-decoration-color: #d13f3f;
+  font-weight: 500;
+}
+
+.ignore-example-line.is-kept {
+  color: #303133;
+  font-weight: 700;
 }
 
 .style-card-header :deep(.el-radio) {
@@ -810,7 +865,17 @@ body {
   border-bottom: 1px solid #f0f0f0;
 }
 
+.ignore-drawer-wrapper :deep(.el-drawer__header) {
+  margin-bottom: 0;
+  padding: 1.5rem;
+  border-bottom: 1px solid #f0f0f0;
+}
+
 .style-drawer-wrapper :deep(.el-drawer__body) {
+  padding: 1rem;
+}
+
+.ignore-drawer-wrapper :deep(.el-drawer__body) {
   padding: 1rem;
 }
 

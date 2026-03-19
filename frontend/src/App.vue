@@ -31,7 +31,9 @@ const inputText = ref("");
 const outputText = ref("");
 const isLoading = ref(false);
 const selectedStyle = ref("enhanced");
+const selectedIgnoreMode = ref("none");
 const styleDrawerVisible = ref(false);
+const ignoreDrawerVisible = ref(false);
 const showWelcomeDialog = ref(false);
 const maintenanceModeEnabled = ref(false);
 
@@ -66,14 +68,67 @@ onMounted(() => {
 });
 
 // 计算属性
-const isInputEmpty = computed(() => inputText.value.trim().length === 0);
+const filteredInputText = computed(() =>
+  getFilteredText(inputText.value, selectedIgnoreMode.value)
+);
+const isFilteredInputEmpty = computed(
+  () => filteredInputText.value.trim().length === 0
+);
 const isDisabled = computed(
-  () => isLoading.value || isInputEmpty.value || !turnstileToken.value
+  () => isLoading.value || isFilteredInputEmpty.value || !turnstileToken.value
 );
 const currentStyleName = computed(() => {
   const style = styles.find((s) => s.id === selectedStyle.value);
   return style ? style.name : "未知风格";
 });
+const currentIgnoreModeName = computed(() => {
+  const mode = ignoreModes.find((m) => m.id === selectedIgnoreMode.value);
+  return mode ? mode.name : "不忽略任何行";
+});
+
+const ignoreExampleLines = [
+  "僕らは命に嫌われている",
+  "我们被生命厌恶着",
+  "軽々しく死にたいだとか",
+  "轻飘飘地说出「想死」这种话",
+  "軽々しく命を見てる僕らは",
+  "如此轻贱生命的我们",
+  "命に嫌われている",
+  "被生命厌恶着",
+];
+
+const ignoreModes = [
+  {
+    id: "none",
+    name: "保留所有行",
+    description: "不进行任何处理",
+  },
+  {
+    id: "odd",
+    name: "忽略奇数行",
+    description: "过滤第 1, 3, 5... 行",
+  },
+  {
+    id: "even",
+    name: "忽略偶数行",
+    description: "过滤第 2, 4, 6... 行",
+  },
+];
+
+function shouldIgnoreLine(lineIndex: number, modeId: string) {
+  const lineNumber = lineIndex + 1;
+  if (modeId === "odd") return lineNumber % 2 === 1;
+  if (modeId === "even") return lineNumber % 2 === 0;
+  return false;
+}
+
+function getFilteredText(text: string, modeId: string) {
+  const lines = text.split(/\r?\n/);
+  if (modeId === "none") return text;
+  return lines
+    .filter((_, index) => !shouldIgnoreLine(index, modeId))
+    .join("\n");
+}
 
 // 处理 emoji 增强
 async function handleEnhance() {
@@ -82,7 +137,11 @@ async function handleEnhance() {
   isLoading.value = true;
 
   try {
-    const enhanced = await enhanceText(inputText.value, selectedStyle.value, turnstileToken.value);
+    const enhanced = await enhanceText(
+      filteredInputText.value,
+      selectedStyle.value,
+      turnstileToken.value
+    );
     outputText.value = enhanced;
     ElMessage.success("提交成功！");
   } catch (error) {
@@ -121,6 +180,10 @@ async function copyToClipboard() {
 // 选择风格
 function selectStyle(styleId: string) {
   selectedStyle.value = styleId;
+}
+
+function selectIgnoreMode(modeId: string) {
+  selectedIgnoreMode.value = modeId;
 }
 
 // 拖拽相关代码已删除，将来可能可用于浮动按钮功能
@@ -212,6 +275,13 @@ function openWelcomeDialog() {
               >
             </p>
             <span
+              class="style-name-badge ignore-mode-badge"
+              @click="ignoreDrawerVisible = true"
+              title="设置忽略行规则"
+            >
+              {{ currentIgnoreModeName }}
+            </span>
+            <span
               class="style-name-badge help-badge"
               @click="openWelcomeDialog"
               title="查看功能说明"
@@ -238,7 +308,9 @@ function openWelcomeDialog() {
             </template>
             <template v-else> 最多 500 字 </template>
           </p>
-          <!-- Turnstile 人机验证小组件 -->
+          <p class="hint">
+            如果不能点击提交按钮，有可能是触发了后台人机验证，无需刷新等待一会儿即可～
+          </p>          <!-- Turnstile 人机验证小组件 -->
           <div ref="turnstileRef" class="turnstile-widget"></div>
         </div>
 
@@ -321,6 +393,58 @@ function openWelcomeDialog() {
               <!-- 示例文本 -->
               <div class="example-box">
                 <div class="example-text">{{ style.example }}</div>
+              </div>
+            </div>
+          </el-radio-group>
+        </div>
+      </el-drawer>
+    </div>
+
+    <!-- 忽略行规则选择抽屉 -->
+    <div class="ignore-drawer-wrapper">
+      <el-drawer
+        v-model="ignoreDrawerVisible"
+        :direction="isMobile ? 'btt' : 'rtl'"
+        :size="isMobile ? '680px' : '360px'"
+        :close-on-click-modal="true"
+        :close-on-press-escape="true"
+        :show-close="true"
+        :class="{ 'drawer-mobile': isMobile }"
+      >
+        <template #header>
+          <h2 class="drawer-title">选择忽略行规则</h2>
+        </template>
+        <div class="style-list">
+          <el-radio-group v-model="selectedIgnoreMode" class="style-radio-group">
+            <div
+              v-for="(mode, index) in ignoreModes"
+              :key="mode.id"
+              class="style-card"
+              :class="{ 'is-selected': selectedIgnoreMode === mode.id }"
+              :style="{ animationDelay: `${index * 0.1}s` }"
+              @click="selectIgnoreMode(mode.id)"
+            >
+              <div class="style-card-header">
+                <el-radio :value="mode.id" size="large">
+                  <span class="style-name">{{ mode.name }}</span>
+                </el-radio>
+              </div>
+              <p class="ignore-mode-description">{{ mode.description }}</p>
+
+              <div class="example-box ignore-example-box">
+                <div class="example-text ignore-example-text">
+                  <p
+                    v-for="(line, lineIndex) in ignoreExampleLines"
+                    :key="`${mode.id}-${lineIndex}`"
+                    class="ignore-example-line"
+                    :class="{
+                      'is-ignored': shouldIgnoreLine(lineIndex, mode.id),
+                      'is-kept': !shouldIgnoreLine(lineIndex, mode.id),
+                    }"
+                  >
+                    {{ line }}
+                  </p>
+                </div>
               </div>
             </div>
           </el-radio-group>
