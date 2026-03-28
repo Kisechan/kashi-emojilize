@@ -133,6 +133,48 @@ npm run build
 
 如果使用 Cloudflare 部署页面，则需要将 `.env.local` 中的环境变量同时填入托管服务。
 
+#### 部署 Turnstile
+
+**Cloudflare Turnstile** 是本项目的人机验证防线，防止自动化脚本滥用付费 API。以下是部署步骤：
+
+1. **创建 Turnstile 小组件**
+   - 打开 [Cloudflare Dashboard](https://dash.cloudflare.com)
+   - 导航到 **Turnstile** 菜单
+   - 点击 **Create Site**
+   - 填写配置：
+     ```
+     Site Name: Kashi Emojilize
+     主机名列表:
+       - [生产域名，如 kashi.kisechan.space]
+     Mode: Managed Challenge 
+     ```
+
+2. **获取密钥**
+   - 创建完成后，复制 **Site Key** (公开，用于前端)
+   - 复制 **Secret Key** (私密，用于后端)
+
+3. **配置前端环境变量**
+
+   **本地开发** (`frontend/.env.local`)：
+   ```env
+   VITE_TURNSTILE_SITE_KEY=...
+   ```
+
+   **Cloudflare Pages**：
+   - Pages 项目 → Settings → Environment variables
+   - 添加变量：
+     ```
+     VITE_TURNSTILE_SITE_KEY=...
+     ```
+
+4. **配置 Worker secrets**
+
+   在 Worker 项目根目录执行：
+   ```bash
+   wrangler secret put TURNSTILE_SECRET_KEY
+   # 粘贴 Secret Key 并回车
+   ```
+
 ## API
 
 ### DeepSeek API
