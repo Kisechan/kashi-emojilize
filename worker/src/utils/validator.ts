@@ -4,7 +4,7 @@
 
 import { AppError } from '../types/index';
 
-const MAX_TEXT_LENGTH = 500;
+const MAX_TEXT_LENGTH = 5000;
 const MIN_TEXT_LENGTH = 1;
 
 export interface ValidationResult {

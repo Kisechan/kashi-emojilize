@@ -294,19 +294,19 @@ function openWelcomeDialog() {
             type="textarea"
             :rows="12"
             placeholder="输入歌词或文案..."
-            maxlength="500"
+            maxlength="5000"
             show-word-limit
             :autosize="{ minRows: 16, maxRows: 24 }"
             @keydown="handleKeydown"
           />
           <p class="hint">
             <template v-if="isMac">
-              <kbd>⌘</kbd>+<kbd>Enter</kbd> 快速提交 | 最多 500 字
+              <kbd>⌘</kbd>+<kbd>Enter</kbd> 快速提交 | 最多 5000 字
             </template>
             <template v-else-if="isWindows">
-              <kbd>Ctrl</kbd>+<kbd>Enter</kbd> 快速提交 | 最多 500 字
+              <kbd>Ctrl</kbd>+<kbd>Enter</kbd> 快速提交 | 最多 5000 字
             </template>
-            <template v-else> 最多 500 字 </template>
+            <template v-else> 最多 5000 字 </template>
           </p>
           <p class="hint">
             如果不能点击提交按钮，有可能是触发了后台人机验证，无需刷新等待一会儿即可～
@@ -512,7 +512,7 @@ function openWelcomeDialog() {
         <section class="welcome-section">
           <h3 class="section-title">使用指南</h3>
           <ol class="guide-list">
-            <li>在左侧输入框粘贴或输入歌词文本（最多 500 字）</li>
+            <li>在左侧输入框粘贴或输入歌词文本（最多 5000 字）</li>
             <li>点击「选择生成风格」按钮选择喜欢的风格</li>
             <li>点击「提交」</li>
             <li>等待处理完成，在右侧查看增强后的文本</li>
