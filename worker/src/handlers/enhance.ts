@@ -46,7 +46,7 @@ export async function handleEnhanceRequest(
     if (!turnstileResult.success) {
       return {
         success: false,
-        error: '人机验证失败，请刷新页面重试',
+        error: '人机验证失败，请重试',
         code: 'TURNSTILE_FAILED',
       };
     }

@@ -74,9 +74,6 @@ const filteredInputText = computed(() =>
 const isFilteredInputEmpty = computed(
   () => filteredInputText.value.trim().length === 0
 );
-const isDisabled = computed(
-  () => isLoading.value || isFilteredInputEmpty.value || !turnstileToken.value
-);
 const currentStyleName = computed(() => {
   const style = styles.find((s) => s.id === selectedStyle.value);
   return style ? style.name : "未知风格";
@@ -130,30 +127,6 @@ function getFilteredText(text: string, modeId: string) {
     .join("\n");
 }
 
-// 处理 emoji 增强
-async function handleEnhance() {
-  if (isDisabled.value) return;
-
-  isLoading.value = true;
-
-  try {
-    const enhanced = await enhanceText(
-      filteredInputText.value,
-      selectedStyle.value,
-      turnstileToken.value
-    );
-    outputText.value = enhanced;
-    ElMessage.success("提交成功！");
-  } catch (error) {
-    const apiError = error as ApiError;
-    ElMessage.error(apiError.message || "增强失败，请稍后重试");
-    console.error("API 错误:", apiError);
-  } finally {
-    isLoading.value = false;
-    resetTurnstile();
-  }
-}
-
 // 处理输入框回车（Ctrl/Cmd + Enter 提交）
 function handleKeydown(event: KeyboardEvent) {
   if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
@@ -188,43 +161,205 @@ function selectIgnoreMode(modeId: string) {
 
 // 拖拽相关代码已删除，将来可能可用于浮动按钮功能
 // Turnstile 人机验证
+type TurnstileStatus =
+  | "loading"
+  | "ready"
+  | "verifying"
+  | "verified"
+  | "error"
+  | "unsupported";
+
+const TURNSTILE_RENDER_TIMEOUT_MS = 10000;
+const TURNSTILE_RENDER_RETRY_INTERVAL_MS = 100;
+
 const turnstileRef = ref<HTMLElement | null>(null);
 const turnstileToken = ref("");
 const turnstileWidgetId = ref<string | null>(null);
+const turnstileStatus = ref<TurnstileStatus>("loading");
+const turnstileMessage = ref("人机验证组件加载中，加载完成后即可提交。");
+const pendingSubmission = ref(false);
+
+const isDisabled = computed(
+  () =>
+    isLoading.value ||
+    isFilteredInputEmpty.value ||
+    turnstileStatus.value === "loading"
+);
+const submitButtonText = computed(() => {
+  if (isLoading.value) return "处理中";
+  if (turnstileStatus.value === "verifying") return "验证中";
+  return "提交";
+});
+const turnstileHint = computed(() => turnstileMessage.value);
+const showTurnstileRetry = computed(() => turnstileStatus.value === "error");
+
+function setTurnstileState(status: TurnstileStatus, message: string) {
+  turnstileStatus.value = status;
+  turnstileMessage.value = message;
+}
+
+function setTurnstileError(message: string) {
+  turnstileToken.value = "";
+  pendingSubmission.value = false;
+  setTurnstileState("error", message);
+}
+
+async function submitEnhanceRequest() {
+  if (!turnstileToken.value) {
+    pendingSubmission.value = false;
+    setTurnstileState("ready", "请重新点击“提交”以完成人机验证。");
+    return;
+  }
+
+  isLoading.value = true;
+  pendingSubmission.value = false;
+
+  try {
+    const enhanced = await enhanceText(
+      filteredInputText.value,
+      selectedStyle.value,
+      turnstileToken.value
+    );
+    outputText.value = enhanced;
+    ElMessage.success("提交成功！");
+  } catch (error) {
+    const apiError = error as ApiError;
+    ElMessage.error(apiError.message || "增强失败，请稍后重试");
+    console.error("API 错误:", apiError);
+  } finally {
+    isLoading.value = false;
+    resetTurnstile();
+  }
+}
+
+function executeTurnstile() {
+  if (!window.turnstile || turnstileWidgetId.value === null) {
+    setTurnstileError("人机验证组件尚未就绪，请稍后重试。");
+    return;
+  }
+
+  try {
+    setTurnstileState("verifying", "正在进行人机验证，请稍候。");
+    window.turnstile.execute(turnstileWidgetId.value);
+  } catch (error) {
+    console.error("[Turnstile] execute 失败:", error);
+    setTurnstileError("触发人机验证失败，请重试。");
+  }
+}
+
+// 处理 emoji 增强
+async function handleEnhance() {
+  if (isLoading.value || isFilteredInputEmpty.value) return;
+
+  if (turnstileStatus.value === "loading") {
+    ElMessage.warning("人机验证组件仍在加载，请稍候。");
+    return;
+  }
+
+  if (turnstileStatus.value === "unsupported") {
+    ElMessage.error(turnstileMessage.value);
+    return;
+  }
+
+  if (turnstileToken.value) {
+    await submitEnhanceRequest();
+    return;
+  }
+
+  pendingSubmission.value = true;
+  executeTurnstile();
+}
 
 function initTurnstile() {
   const siteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY;
   if (!siteKey) {
-    console.warn("[Turnstile] VITE_TURNSTILE_SITE_KEY 未配置，跳过人机验证");
+    console.warn("[Turnstile] VITE_TURNSTILE_SITE_KEY 未配置");
+    setTurnstileError("站点未配置人机验证，当前无法提交。");
     return;
   }
+
+  turnstileToken.value = "";
+  pendingSubmission.value = false;
+  setTurnstileState("loading", "人机验证组件加载中，加载完成后即可提交。");
+
+  const startedAt = Date.now();
+
   const tryRender = () => {
     if (window.turnstile && turnstileRef.value) {
+      if (turnstileWidgetId.value !== null) {
+        window.turnstile.remove(turnstileWidgetId.value);
+        turnstileWidgetId.value = null;
+      }
+
       turnstileWidgetId.value = window.turnstile.render(turnstileRef.value, {
         sitekey: siteKey,
+        appearance: "interaction-only",
+        execution: "execute",
         callback: (token: string) => {
           turnstileToken.value = token;
+          setTurnstileState("verified", "人机验证完成，正在提交。");
+          if (pendingSubmission.value && !isLoading.value) {
+            void submitEnhanceRequest();
+          }
         },
-        "error-callback": () => {
-          turnstileToken.value = "";
+        "error-callback": (errorCode?: string) => {
+          const suffix = errorCode ? `（${errorCode}）` : "";
+          setTurnstileError(`人机验证失败${suffix}，请重试。`);
         },
         "expired-callback": () => {
           turnstileToken.value = "";
+          pendingSubmission.value = false;
+          setTurnstileState("ready", "人机验证已过期，请重新点击“提交”。");
+        },
+        "timeout-callback": () => {
+          setTurnstileError("人机验证超时，请重试。");
+        },
+        "unsupported-callback": () => {
+          turnstileToken.value = "";
+          pendingSubmission.value = false;
+          setTurnstileState(
+            "unsupported",
+            "当前浏览器环境不支持人机验证，请更换浏览器后重试。"
+          );
         },
         theme: "light",
       });
+      setTurnstileState("ready", "点击“提交”后会自动完成人机验证。");
     } else {
-      setTimeout(tryRender, 100);
+      if (Date.now() - startedAt >= TURNSTILE_RENDER_TIMEOUT_MS) {
+        setTurnstileError("人机验证加载超时，请检查网络后重试。");
+        return;
+      }
+
+      setTimeout(tryRender, TURNSTILE_RENDER_RETRY_INTERVAL_MS);
     }
   };
   tryRender();
 }
 
 function resetTurnstile() {
+  turnstileToken.value = "";
+  pendingSubmission.value = false;
+
   if (window.turnstile && turnstileWidgetId.value !== null) {
     window.turnstile.reset(turnstileWidgetId.value);
-    turnstileToken.value = "";
+    setTurnstileState("ready", "点击“提交”后会自动完成人机验证。");
+    return;
   }
+
+  setTurnstileState("loading", "人机验证组件加载中，加载完成后即可提交。");
+}
+
+function retryTurnstile() {
+  turnstileToken.value = "";
+  pendingSubmission.value = false;
+
+  if (window.turnstile && turnstileWidgetId.value !== null) {
+    window.turnstile.remove(turnstileWidgetId.value);
+    turnstileWidgetId.value = null;
+  }
+
+  initTurnstile();
 }
 // 打开欢迎对话框
 function openWelcomeDialog() {
@@ -308,10 +443,27 @@ function openWelcomeDialog() {
             </template>
             <template v-else> 最多 5000 字 </template>
           </p>
-          <p class="hint">
-            如果不能点击提交按钮，有可能是触发了后台人机验证，无需刷新等待一会儿即可～
-          </p>          <!-- Turnstile 人机验证小组件 -->
-          <div ref="turnstileRef" class="turnstile-widget"></div>
+          <p
+            class="hint"
+            :class="{
+              'hint--error':
+                turnstileStatus === 'error' || turnstileStatus === 'unsupported',
+            }"
+          >
+            {{ turnstileHint }}
+          </p>
+          <div class="turnstile-row">
+            <div ref="turnstileRef" class="turnstile-widget"></div>
+            <el-button
+              v-if="showTurnstileRetry"
+              type="primary"
+              link
+              class="turnstile-retry"
+              @click="retryTurnstile"
+            >
+              重新加载验证
+            </el-button>
+          </div>
         </div>
 
         <!-- 中间：按钮组 -->
@@ -323,7 +475,7 @@ function openWelcomeDialog() {
             :disabled="isDisabled"
             @click="handleEnhance"
           >
-            {{ isLoading ? "处理中" : "提交" }}
+            {{ submitButtonText }}
           </el-button>
           <el-button
             type="default"

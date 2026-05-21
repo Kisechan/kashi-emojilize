@@ -226,6 +226,23 @@ body {
 /* Turnstile 人机验证 */
 .turnstile-widget {
   margin-top: 0.75rem;
+  min-height: 32px;
+}
+
+.turnstile-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.turnstile-retry {
+  margin-top: 0.75rem;
+  padding: 0 !important;
+}
+
+.hint--error {
+  color: #d03050;
 }
 
 /* 风格指示器 */

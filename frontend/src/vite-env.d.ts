@@ -18,12 +18,17 @@ declare interface Window {
       params: {
         sitekey: string
         callback?: (token: string) => void
-        'error-callback'?: () => void
+        'error-callback'?: (errorCode?: string) => void
         'expired-callback'?: () => void
+        'timeout-callback'?: () => void
+        'unsupported-callback'?: () => void
         theme?: 'light' | 'dark' | 'auto'
         size?: 'normal' | 'compact'
+        appearance?: 'always' | 'execute' | 'interaction-only'
+        execution?: 'render' | 'execute'
       }
     ): string
+    execute(widgetId?: string): void
     reset(widgetId?: string): void
     remove(widgetId: string): void
   }
