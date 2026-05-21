@@ -65,7 +65,7 @@ export async function callDeepSeekAPI(
 
     // 构建请求
     const request: DeepSeekRequest = {
-      model: 'deepseek-chat',
+      model: 'deepseek-v4-flash',
       messages,
       ...params,
     };
