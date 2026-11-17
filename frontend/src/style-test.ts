@@ -29,8 +29,8 @@ const argv = yargs(hideBin(process.argv))
   .help()
   .parseSync();
 
-const API_URL = argv.api === 'remote' 
-  ? 'http://kashi-emojilize-api.kisechan.space' 
+const API_URL = argv.api === 'remote'
+  ? 'https://kashi-emojilize-api.kscn.uk'
   : 'http://localhost:8787';
 
 async function enhanceText(text: string, style: string): Promise<{ text: string; duration: number }> {

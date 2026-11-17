@@ -7,7 +7,7 @@
 
 为 Vocaloid 歌词自动添加发癫 emoji 的小工具。
 
-在线体验：[https://kashi.kisechan.space](https://kashi.kisechan.space)
+在线体验：[https://kashi.kscn.uk](https://kashi.kscn.uk)
 
 ## 项目简介
 
@@ -131,7 +131,14 @@ npm run build
 # 上传 dist 文件夹到你的托管服务
 ```
 
-如果使用 Cloudflare 部署页面，则需要将 `.env.local` 中的环境变量同时填入托管服务。
+Cloudflare Pages 的生产环境和预览环境均需配置构建变量：
+
+```env
+VITE_WORKER_API_BASE_URL=https://kashi-emojilize-api.kscn.uk
+VITE_TURNSTILE_SITE_KEY=<生产 Turnstile Site Key>
+```
+
+Vite 会在构建时将变量写入静态文件；修改变量后，重新构建并部署前端。域名迁移时，同步更新 `worker/wrangler.jsonc` 的自定义域名、Pages 构建变量和 Turnstile 允许的主机名，并通过 `https://kashi-emojilize-api.kscn.uk/health` 检查 API。
 
 #### 部署 Turnstile
 
@@ -145,7 +152,7 @@ npm run build
      ```
      Site Name: Kashi Emojilize
      主机名列表:
-       - [生产域名，如 kashi.kisechan.space]
+       - [生产域名，如 kashi.kscn.uk]
      Mode: Managed Challenge 
      ```
 

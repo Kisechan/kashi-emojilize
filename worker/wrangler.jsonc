@@ -14,8 +14,8 @@
 	},
 	"routes": [
 		{
-			"pattern": "kashi-emojilize-api.kisechan.space",
-			"zone_name": "kisechan.space",
+			"pattern": "kashi-emojilize-api.kscn.uk",
+			"zone_name": "kscn.uk",
 			"custom_domain": true
 		}
 	],
