@@ -487,8 +487,8 @@ function openWelcomeDialog() {
     <!-- 欢迎说明对话框 -->
     <el-dialog
       v-model="showWelcomeDialog"
-      width="65%"
-      :max-height="40"
+      width="min(600px, calc(100vw - 32px))"
+      aria-label="欢迎使用歌词 Emoji 化小工具"
       align-center
       class="welcome-dialog"
     >
