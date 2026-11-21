@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, nextTick, onMounted, onUnmounted } from "vue";
 import { ElMessage } from "element-plus";
-import { enhanceText } from "./services/api";
+import { checkSession, enhanceText, openSession } from "./services/api";
 import type { ApiError } from "./types/index";
 
 // 风格定义
@@ -55,18 +55,6 @@ if (typeof window !== "undefined") {
   window.addEventListener("resize", updateScreenSize);
 }
 
-// 首次访问检查
-onMounted(() => {
-  const hasVisited = localStorage.getItem("kashi-emojilize-visited");
-  if (!hasVisited) {
-    showWelcomeDialog.value = true;
-    localStorage.setItem("kashi-emojilize-visited", "true");
-  }
-
-  // 初始化 Turnstile 小组件
-  initTurnstile();
-});
-
 // 计算属性
 const filteredInputText = computed(() =>
   getFilteredText(inputText.value, selectedIgnoreMode.value)
@@ -75,7 +63,7 @@ const isFilteredInputEmpty = computed(
   () => filteredInputText.value.trim().length === 0
 );
 const isDisabled = computed(
-  () => isLoading.value || isFilteredInputEmpty.value || !turnstileToken.value
+  () => isLoading.value || isFilteredInputEmpty.value || !session.value
 );
 const currentStyleName = computed(() => {
   const style = styles.find((s) => s.id === selectedStyle.value);
@@ -140,17 +128,20 @@ async function handleEnhance() {
     const enhanced = await enhanceText(
       filteredInputText.value,
       selectedStyle.value,
-      turnstileToken.value
+      session.value
     );
     outputText.value = enhanced;
     ElMessage.success("提交成功！");
   } catch (error) {
     const apiError = error as ApiError;
+    if (apiError.statusCode === 401) {
+      await requireVerification("会话已失效，请重新验证。");
+      return;
+    }
     ElMessage.error(apiError.message || "增强失败，请稍后重试");
     console.error("API 错误:", apiError);
   } finally {
     isLoading.value = false;
-    resetTurnstile();
   }
 }
 
@@ -187,45 +178,110 @@ function selectIgnoreMode(modeId: string) {
 }
 
 // 拖拽相关代码已删除，将来可能可用于浮动按钮功能
-// Turnstile 人机验证
+// 进站验证会话
+const session = ref("");
+const sessionStorageKey = "kashi-verification-session";
+const gateStatus = ref("正在载入安全验证…");
+const gateError = ref(false);
 const turnstileRef = ref<HTMLElement | null>(null);
-const turnstileToken = ref("");
-const turnstileWidgetId = ref<string | null>(null);
+let widgetId: string | undefined;
+let expiryTimer: ReturnType<typeof setTimeout>;
+let renderTimer: ReturnType<typeof setTimeout>;
+let disposed = false;
 
-function initTurnstile() {
-  const siteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY;
-  if (!siteKey) {
-    console.warn("[Turnstile] VITE_TURNSTILE_SITE_KEY 未配置，跳过人机验证");
+function removeWidget() {
+  clearTimeout(renderTimer);
+  if (widgetId !== undefined) {
+    window.turnstile.remove(widgetId);
+    widgetId = undefined;
+  }
+}
+
+function enterSite(value: string) {
+  removeWidget();
+  sessionStorage.setItem(sessionStorageKey, value);
+  session.value = value;
+  clearTimeout(expiryTimer);
+  expiryTimer = setTimeout(
+    () => void requireVerification("会话已到期，请重新验证。"),
+    Number(value.split(".")[0]) - Date.now(),
+  );
+  if (!localStorage.getItem("kashi-emojilize-visited")) {
+    showWelcomeDialog.value = true;
+    localStorage.setItem("kashi-emojilize-visited", "true");
+  }
+}
+
+function showGateError(message: string) {
+  gateError.value = true;
+  gateStatus.value = message;
+}
+
+async function requireVerification(message = "请完成下方验证，通过后将自动进入。") {
+  clearTimeout(expiryTimer);
+  removeWidget();
+  sessionStorage.removeItem(sessionStorageKey);
+  session.value = "";
+  gateError.value = false;
+  gateStatus.value = message;
+  await nextTick();
+  const sitekey = import.meta.env.VITE_TURNSTILE_SITE_KEY;
+  if (!sitekey) {
+    showGateError("安全验证暂不可用。");
     return;
   }
-  const tryRender = () => {
-    if (window.turnstile && turnstileRef.value) {
-      turnstileWidgetId.value = window.turnstile.render(turnstileRef.value, {
-        sitekey: siteKey,
-        callback: (token: string) => {
-          turnstileToken.value = token;
-        },
-        "error-callback": () => {
-          turnstileToken.value = "";
-        },
-        "expired-callback": () => {
-          turnstileToken.value = "";
-        },
-        theme: "light",
-      });
-    } else {
-      setTimeout(tryRender, 100);
+
+  const deadline = Date.now() + 10_000;
+  function render() {
+    if (disposed) return;
+    if (!window.turnstile || !turnstileRef.value) {
+      if (Date.now() >= deadline) showGateError("验证组件加载失败，请刷新页面重试。");
+      else renderTimer = setTimeout(render, 100);
+      return;
     }
-  };
-  tryRender();
+    try {
+      widgetId = window.turnstile.render(turnstileRef.value, {
+        sitekey: sitekey!,
+        action: "site-entry",
+        theme: "light",
+        retry: "never",
+        size: "flexible",
+        callback: async (token) => {
+          gateStatus.value = "正在确认验证结果…";
+          try {
+            const verifiedSession = await openSession(token);
+            if (!disposed) enterSite(verifiedSession);
+          } catch (error) {
+            if (disposed) return;
+            showGateError(error instanceof Error ? error.message : "验证失败，请重试。");
+          }
+        },
+        "error-callback": () => showGateError("验证未通过，请重试。"),
+        "expired-callback": () => showGateError("验证已过期，请重试。"),
+      });
+    } catch {
+      showGateError("验证组件加载失败，请刷新页面重试。");
+    }
+  }
+  render();
 }
 
-function resetTurnstile() {
-  if (window.turnstile && turnstileWidgetId.value !== null) {
-    window.turnstile.reset(turnstileWidgetId.value);
-    turnstileToken.value = "";
+onMounted(async () => {
+  const cached = sessionStorage.getItem(sessionStorageKey);
+  if (cached && await checkSession(cached).catch(() => false)) {
+    if (!disposed) enterSite(cached);
+    return;
   }
-}
+  if (!disposed) await requireVerification();
+});
+
+onUnmounted(() => {
+  disposed = true;
+  clearTimeout(expiryTimer);
+  removeWidget();
+  window.removeEventListener("resize", updateScreenSize);
+});
+
 // 打开欢迎对话框
 function openWelcomeDialog() {
   showWelcomeDialog.value = true;
@@ -233,7 +289,16 @@ function openWelcomeDialog() {
 </script>
 
 <template>
-  <div class="app-container">
+  <main v-if="!session" class="entry-gate">
+    <section class="entry-card" aria-labelledby="entry-title">
+      <img src="./assets/icon.jpg" alt="" width="52" height="52" class="entry-icon" />
+      <h1 id="entry-title">歌词 Emoji 化小工具</h1>
+      <p role="status">{{ gateStatus }}</p>
+      <div ref="turnstileRef" class="entry-widget"></div>
+      <el-button v-if="gateError" @click="requireVerification()">重新验证</el-button>
+    </section>
+  </main>
+  <div v-else class="app-container">
     <!-- 顶部标题栏 -->
     <div class="page-header">
       <div class="header-content">
@@ -308,10 +373,7 @@ function openWelcomeDialog() {
             </template>
             <template v-else> 最多 5000 字 </template>
           </p>
-          <p class="hint">
-            如果不能点击提交按钮，有可能是触发了后台人机验证，无需刷新等待一会儿即可～
-          </p>          <!-- Turnstile 人机验证小组件 -->
-          <div ref="turnstileRef" class="turnstile-widget"></div>
+
         </div>
 
         <!-- 中间：按钮组 -->

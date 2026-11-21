@@ -11,8 +11,9 @@
  * Learn more at https://developers.cloudflare.com/workers/
  */
 
-import { Env, EnhanceResponse, AppError } from './types/index';
+import { Env, EnhanceResponse } from './types/index';
 import { handleEnhanceRequest } from './handlers/enhance';
+import { createSession, hasSession } from './security/session';
 
 /**
  * 响应错误请求
@@ -32,7 +33,7 @@ function createErrorResponse(
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
       },
     }
   );
@@ -48,7 +49,7 @@ function createSuccessResponse(data: EnhanceResponse): Response {
       'Content-Type': 'application/json',
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     },
   });
 }
@@ -62,7 +63,7 @@ function handleOptions(): Response {
     headers: {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     },
   });
 }
@@ -92,7 +93,7 @@ async function handleEnhanceRoute(
     }
 
     // 调用业务处理器
-    const response = await handleEnhanceRequest(body, env, request);
+    const response = await handleEnhanceRequest(body, env);
 
     // 返回结果
     return createSuccessResponse(response);
@@ -141,9 +142,23 @@ export default {
       return createErrorResponse('方法不允许', 405);
     }
 
+    if (pathname === '/session') {
+      const headers = { 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'no-store' };
+      if (method === 'GET') {
+        return new Response(null, { status: await hasSession(request, env) ? 204 : 401, headers });
+      }
+      if (method === 'POST') {
+        const response = await createSession(request, env);
+        for (const [key, value] of Object.entries(headers)) response.headers.set(key, value);
+        return response;
+      }
+      return createErrorResponse('方法不允许', 405);
+    }
+
     if (pathname === '/enhance') {
       // emoji 增强端点
       if (method === 'POST') {
+        if (!(await hasSession(request, env))) return createErrorResponse('请先完成人机验证', 401);
         return await handleEnhanceRoute(request, env);
       }
       return createErrorResponse('方法不允许', 405);

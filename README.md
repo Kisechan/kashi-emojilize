@@ -142,7 +142,9 @@ Vite 会在构建时将变量写入静态文件；修改变量后，重新构建
 
 #### 部署 Turnstile
 
-**Cloudflare Turnstile** 是本项目的人机验证防线，防止自动化脚本滥用付费 API。以下是部署步骤：
+**Cloudflare Turnstile** 是本项目的人机验证防线，防止自动化脚本滥用付费 API。访客在进站时完成验证，Worker 签发两小时会话；同一标签页可刷新页面和多次提交。Worker 会继续对增强请求限流。部署 Worker 前，通过 `wrangler secret put SESSION_SECRET` 配置独立的签名密钥（用 `openssl rand -hex 32` 生成），然后部署前端。生产验证只接受 `kashi.kscn.uk` 签发的进站 token。本地可用官方测试密钥，在 `worker/.dev.vars` 配置单独的 `SESSION_SECRET` 和 `TURNSTILE_LOCAL_TEST=true`，前端使用端口 5173。
+
+以下是部署步骤：
 
 1. **创建 Turnstile 小组件**
    - 打开 [Cloudflare Dashboard](https://dash.cloudflare.com)

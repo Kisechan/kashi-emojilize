@@ -15,6 +15,28 @@ function getApiBaseUrl(): string {
   return url.replace(/\/$/, ''); // 移除末尾斜杠
 }
 
+export async function openSession(token: string): Promise<string> {
+  const response = await fetch(`${getApiBaseUrl()}/session`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token }),
+    signal: AbortSignal.timeout(15_000),
+  }).catch(() => {
+    throw new Error('验证服务连接失败，请重试。');
+  });
+  const data = await response.json().catch(() => ({})) as { session?: string; error?: string };
+  if (!response.ok || !data.session) throw new Error(data.error || '验证服务暂不可用，请重试');
+  return data.session;
+}
+
+export async function checkSession(session: string): Promise<boolean> {
+  const response = await fetch(`${getApiBaseUrl()}/session`, {
+    headers: { Authorization: `Bearer ${session}` },
+    signal: AbortSignal.timeout(10_000),
+  });
+  return response.ok;
+}
+
 /**
  * 处理 API 响应
  */
@@ -42,7 +64,7 @@ function handleApiError(response: Response, error?: unknown): ApiError {
  * @returns 增强后的文本
  * @throws ApiError
  */
-export async function enhanceText(text: string, style?: string, turnstileToken?: string): Promise<string> {
+export async function enhanceText(text: string, style: string, session: string): Promise<string> {
   const baseUrl = getApiBaseUrl();
   const url = `${baseUrl}/enhance`;
 
@@ -50,13 +72,13 @@ export async function enhanceText(text: string, style?: string, turnstileToken?:
     const request: EnhanceRequest = {
       text,
       style: style as 'restrained' | 'enhanced' | 'symmetric' | undefined,
-      turnstileToken: turnstileToken ?? '',
     };
 
     const response = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        Authorization: `Bearer ${session}`,
       },
       body: JSON.stringify(request),
     });

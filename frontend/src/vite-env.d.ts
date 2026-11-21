@@ -17,11 +17,13 @@ declare interface Window {
       container: HTMLElement | string,
       params: {
         sitekey: string
+        action?: string
+        retry?: "auto" | "never"
         callback?: (token: string) => void
         'error-callback'?: () => void
         'expired-callback'?: () => void
         theme?: 'light' | 'dark' | 'auto'
-        size?: 'normal' | 'compact'
+        size?: 'normal' | 'compact' | 'flexible'
       }
     ): string
     reset(widgetId?: string): void

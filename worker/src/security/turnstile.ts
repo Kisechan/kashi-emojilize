@@ -11,6 +11,8 @@ const TURNSTILE_VERIFY_URL =
 export interface TurnstileVerifyResult {
   success: boolean;
   errorCode?: string;
+  hostname?: string;
+  action?: string;
 }
 
 /**
@@ -35,6 +37,7 @@ export async function verifyTurnstileToken(
   try {
     const response = await fetch(TURNSTILE_VERIFY_URL, {
       method: 'POST',
+      signal: AbortSignal.timeout(10_000),
       body: formData,
     });
 
@@ -44,11 +47,15 @@ export async function verifyTurnstileToken(
 
     const result = await response.json<{
       success: boolean;
+      hostname?: string;
+      action?: string;
       'error-codes'?: string[];
     }>();
 
     return {
-      success: result.success,
+      success: result.success === true,
+      hostname: result.hostname,
+      action: result.action,
       errorCode: result['error-codes']?.[0],
     };
   } catch {

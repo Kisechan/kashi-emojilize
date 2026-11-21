@@ -1,5 +1,6 @@
 // 用于测试不同风格的文本增强效果
 // 安装依赖，运行 `npm install`。
+// 将浏览器当前标签页 sessionStorage 中的 kashi-verification-session 配置到 KASHI_TEST_SESSION。
 // 用以下命令运行脚本： 
 //    `npx ts-node style-test.ts --api=<local|remote> --style=<restrained|enhanced>`
 
@@ -41,6 +42,7 @@ async function enhanceText(text: string, style: string): Promise<{ text: string;
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      Authorization: `Bearer ${process.env.KASHI_TEST_SESSION}`,
     },
     body: JSON.stringify({ text, style }),
   });
@@ -64,6 +66,7 @@ async function enhanceText(text: string, style: string): Promise<{ text: string;
 }
 
 async function runStyleTest() {
+  if (!process.env.KASHI_TEST_SESSION) throw new Error("请先在网页完成验证并配置 KASHI_TEST_SESSION");
   const inputTexts = [
     `晴れた雲を見ていた\n昨日夜空に重ねた青を\n浅く影に隠れた\n君の描いた空が消えない\n忘れたら 君はいなくなるから\n揺らいだ昨日を思い出せ`,
     `知らない知らない僕は何も知らない\n叱られた後のやさしさも\n雨上がりの手の温もりも\nでも本当は本当は本当は本当に寒いんだ`

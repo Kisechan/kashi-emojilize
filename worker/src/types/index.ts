@@ -5,7 +5,6 @@
 export interface EnhanceRequest {
   text: string;
   style?: 'restrained' | 'enhanced' | 'symmetric';
-  turnstileToken: string;
 }
 
 export interface EnhanceResponse {
@@ -21,6 +20,8 @@ export interface EnhanceResponse {
 export interface Env {
   DEEPSEEK_API_KEY: string;
   TURNSTILE_SECRET_KEY: string;
+  SESSION_SECRET: string;
+  TURNSTILE_LOCAL_TEST?: string;
   RATE_LIMITER: {
     limit(options: { key: string }): Promise<{ success: boolean }>;
   };
